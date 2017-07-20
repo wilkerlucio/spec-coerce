@@ -52,11 +52,3 @@
          {::some-coercion 321
           ::not-defined "bla"
           :sub {::infer-int 42}})))
-
-(comment
-  (enable-console-print!)
-
-  (js/Date. "2017")
-  bigdec?
-
-  (run-tests 'spec-coerce.core-test))

@@ -1,7 +1,8 @@
 (ns spec-coerce.core
   (:refer-clojure :exclude [def])
   (:require [clojure.spec.alpha :as s]
-            [clojure.walk :as walk])
+            [clojure.walk :as walk]
+            #?(:clj [clojure.instant]))
   #?(:clj (:import (java.util UUID))))
 
 (s/def ::coerce-fn
@@ -9,7 +10,21 @@
 
 (defonce ^:private registry-ref (atom {}))
 
-(defn- parse-long [x] (Long/parseLong x))
+(defn parse-long [x]
+  #?(:clj (Long/parseLong x)
+     :cljs (js/parseInt x)))
+
+(defn parse-double [x]
+  #?(:clj (Double/parseDouble x)
+     :cljs (js/parseFloat x)))
+
+(defn parse-uuid [x]
+  #?(:clj (UUID/fromString x)
+     :cljs (uuid x)))
+
+(defn parse-inst [x]
+  #?(:clj (clojure.instant/read-instant-timestamp x)
+     :cljs (js/Date. x)))
 
 (defmulti sym->coercer identity)
 
@@ -17,11 +32,11 @@
 (defmethod sym->coercer `nat-int? [_] parse-long)
 (defmethod sym->coercer `pos-int? [_] parse-long)
 (defmethod sym->coercer `neg-int? [_] parse-long)
-(defmethod sym->coercer `bigdec? [_] #(bigdec %))
-(defmethod sym->coercer `inst? [_] clojure.instant/read-instant-timestamp)
-(defmethod sym->coercer `uuid? [_] #?(:clj #(UUID/fromString %)
-                                      :cljs #(uuid %)))
+(defmethod sym->coercer `inst? [_] parse-inst)
+(defmethod sym->coercer `uuid? [_] parse-uuid)
 (defmethod sym->coercer `keyword? [_] keyword)
+
+#?(:clj (defmethod sym->coercer `bigdec? [_] #(bigdec %)))
 
 (defmethod sym->coercer :default [_] identity)
 
@@ -30,9 +45,8 @@
   :ret ::coerce-fn)
 
 (defn- safe-form [spec]
-  (try
-    (s/form spec)
-    (catch Exception _ nil)))
+  (if (contains? (s/registry) spec)
+    (s/form spec)))
 
 (defn- form->spec [and-spec]
   (if (and (seq? and-spec)

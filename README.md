@@ -1,10 +1,10 @@
 # spec-coerce
 
-A Clojure library designed to ... well, that part is up to you.
+A Clojure library designed to leverage your specs to coerce string information into correct types.
 
 ## Usage
 
-FIXME
+
 
 ## License
 

@@ -58,6 +58,7 @@
     `boolean? "true" true
     `boolean? "false" false
     `ident? ":foo/bar" :foo/bar
+    `ident? "foo/bar" 'foo/bar
     `simple-ident? ":foo" :foo
     `qualified-ident? ":foo/baz" :foo/baz
     `keyword? "keyword" :keyword

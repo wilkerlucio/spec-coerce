@@ -64,6 +64,7 @@ Extensive list of examples from predicate to coerced value:
 (sc/coerce `boolean? "true")                                ; => true
 (sc/coerce `boolean? "false")                               ; => false
 (sc/coerce `ident? ":foo/bar")                              ; => :foo/bar
+(sc/coerce `ident? "foo/bar")                               ; => 'foo/bar
 (sc/coerce `simple-ident? ":foo")                           ; => :foo
 (sc/coerce `qualified-ident? ":foo/baz")                    ; => :foo/baz
 (sc/coerce `keyword? "keyword")                             ; => :keyword

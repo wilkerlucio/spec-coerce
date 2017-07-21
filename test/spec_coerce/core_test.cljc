@@ -14,15 +14,7 @@
   #?(:clj
      (:import (java.net URI))))
 
-(s/def ::infer-number number?)
-(s/def ::infer-integer integer?)
 (s/def ::infer-int int?)
-(s/def ::infer-pos-int pos-int?)
-(s/def ::infer-neg-int neg-int?)
-(s/def ::infer-nat-int nat-int?)
-(s/def ::infer-inst inst?)
-(s/def ::infer-uuid uuid?)
-(s/def ::infer-keyword keyword?)
 (s/def ::infer-and-spec (s/and int? #(> % 10)))
 (s/def ::infer-and-spec-indirect (s/and ::infer-int #(> % 10)))
 
@@ -115,9 +107,6 @@
 (deftest test-coerce-inference-test
   (are [keyword input output] (= (sc/coerce keyword input) output)
     ::infer-int "123" 123
-    ::infer-nat-int "0" 0
-    ::infer-pos-int "44" 44
-    ::infer-neg-int "-42" -42
     ::infer-and-spec "42" 42
     ::infer-and-spec-indirect "43" 43
     ::second-layer "41" 42

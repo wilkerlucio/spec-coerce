@@ -68,7 +68,9 @@
 #?(:clj
    (defn parse-bigdec [x]
      (if (string? x)
-       (bigdec x)
+       (if (str/ends-with? x "M")
+         (bigdec (subs x 0 (dec (count x))))
+         (bigdec x))
        x)))
 
 #?(:clj

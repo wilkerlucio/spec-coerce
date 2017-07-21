@@ -1,10 +1,17 @@
 (ns spec-coerce.core-test
   #?(:cljs (:require-macros [cljs.test :refer [deftest testing is are run-tests]]))
-  (:require [clojure.spec.alpha :as s]
+  (:require
+    #?(:clj [clojure.test :refer [deftest testing is are]])
+            [clojure.spec.alpha :as s]
+            [clojure.string :as str]
+            [clojure.test.check :as tc]
+            [clojure.test.check.generators]
+            [clojure.test.check.properties :as prop]
     #?(:clj
-            [clojure.test :refer [deftest testing is are]])
+            [clojure.test.check.clojure-test :refer [defspec]])
+    #?(:cljs [clojure.test.check.clojure-test :refer-macros [defspec]])
             [spec-coerce.core :as sc])
-  (:import (java.net URI)))
+  #?(:clj (:import (java.net URI))))
 
 (s/def ::infer-number number?)
 (s/def ::infer-integer integer?)
@@ -64,15 +71,39 @@
     #?@(:clj [`uri? "http://site.com" (URI. "http://site.com")])
     #?@(:clj [`bigdec? "42.42" 42.42M])))
 
+(def test-gens
+  {`inst? (s/gen (s/inst-in #inst "1980" #inst "9999"))})
+
+#?(:cljs
+   (defn ->js [var-name]
+     (-> (str var-name)
+         (str/replace #"/" ".")
+         (str/replace #"-" "_")
+         (str/replace #"\?" "_QMARK_")
+         (js/eval))))
+
+(deftest test-coerce-generative
+  (doseq [s (->> (methods sc/sym->coercer)
+                 (keys)
+                 (filter symbol?))
+          :let [sp #?(:clj @(resolve s)
+                      :cljs (->js s))]]
+    (let [res (tc/quick-check 100
+                (prop/for-all [v (or (test-gens s) (s/gen sp))]
+                  (s/valid? sp (sc/coerce s (-> (pr-str v)
+                                                (str/replace #"^#[^\"]+\"|\"]?$"
+                                                             ""))))))]
+      (if-not (= true (:result res))
+        (throw (ex-info (str "Error coercing " s)
+                        {:symbol s
+                         :result res}))))))
+
 (deftest test-coerce-inference-test
   (are [keyword input output] (= (sc/coerce keyword input) output)
     ::infer-int "123" 123
     ::infer-nat-int "0" 0
     ::infer-pos-int "44" 44
     ::infer-neg-int "-42" -42
-    ;::infer-inst? "2017-05-03T10:40:00" #inst "2017-05-03T10:40:00"
-    ::infer-uuid "d6e73cc5-95bc-496a-951c-87f11af0d839" #uuid "d6e73cc5-95bc-496a-951c-87f11af0d839"
-    ::infer-keyword "foo" :foo
     ::infer-and-spec "42" 42
     ::infer-and-spec-indirect "43" 43
     ::second-layer "41" 42
@@ -82,26 +113,8 @@
 
 (deftest test-coerce-structure
   (is (= (sc/coerce-structure {::some-coercion "321"
-                               ::not-defined "bla"
-                               :sub {::infer-int "42"}})
+                               ::not-defined   "bla"
+                               :sub            {::infer-int "42"}})
          {::some-coercion 321
-          ::not-defined "bla"
-          :sub {::infer-int 42}})))
-
-; TODO generative testing for coercions
-
-(comment
-  (s/def ::number int?)
-  (sc/coerce int? "3")
-
-  (methods sc/sym->coercer)
-
-
-  (symbol int?)
-  (-> (s/spec int?)
-      (sc/safe-form))
-
-  (sc/coerce `ident? ":foo")
-
-  (sc/sym->coercer int?)
-  )
+          ::not-defined   "bla"
+          :sub            {::infer-int 42}})))

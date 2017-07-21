@@ -1,6 +1,6 @@
 # spec-coerce
 
-A Clojure library designed to leverage your specs to coerce string information into correct types.
+A Clojure(script) library designed to leverage your specs to coerce string information into correct types.
 
 ## Latest version
 

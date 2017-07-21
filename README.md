@@ -43,9 +43,9 @@ Learn by example:
 (sc/coerce-structure {::number      "42"
                       ::not-defined "bla"
                       :sub          {::odd-number "45"}})
-; => {::some-coercion 42
-;     ::not-defined   "bla"
-;     :sub            {::infer-int 45}}
+; => {::number      42
+;     ::not-defined "bla"
+;     :sub          {::odd-number 45}}
 
 ; If you want to set a custom coercer for a given spec, use the spec-coerce registry
 (defrecord SomeClass [x])

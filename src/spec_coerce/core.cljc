@@ -2,9 +2,9 @@
   (:refer-clojure :exclude [def])
   (:require [clojure.spec.alpha :as s]
             [clojure.walk :as walk]
+            [clojure.string :as str]
     #?(:clj
-            [clojure.instant])
-            [clojure.string :as str])
+            [clojure.instant]))
   #?(:clj
      (:import (java.util UUID)
               (java.net URI))))

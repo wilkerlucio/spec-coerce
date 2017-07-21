@@ -5,7 +5,7 @@ A Clojure library designed to leverage your specs to coerce string information i
 ## Latest version
 
 ```
-[spec-coerce "0.1.0-alpha2"]
+[spec-coerce "1.0.0-alpha2"]
 ```
 
 Spec Coerce will remain in alpha while clojure.spec still in alpha.

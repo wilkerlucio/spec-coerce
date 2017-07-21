@@ -28,7 +28,7 @@ Learn by example:
 ; Call the coerce method passing the spec and the value to be coerced
 (sc/coerce ::number "42") ; => 42
 
-; Like spec generators, when using `and` it will 
+; Like spec generators, when using `and` it will use the first item as the inference source
 (s/def ::odd-number (s/and int? odd?))
 (sc/coerce ::odd-number "5") ; => 5
 

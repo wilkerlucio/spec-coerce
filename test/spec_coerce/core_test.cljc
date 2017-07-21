@@ -11,7 +11,8 @@
             [clojure.test.check.clojure-test :refer [defspec]])
     #?(:cljs [clojure.test.check.clojure-test :refer-macros [defspec]])
             [spec-coerce.core :as sc])
-  #?(:clj (:import (java.net URI))))
+  #?(:clj
+     (:import (java.net URI))))
 
 (s/def ::infer-number number?)
 (s/def ::infer-integer integer?)
@@ -50,6 +51,8 @@
     `pos-int? "42" 42
     `neg-int? "-42" -42
     `nat-int? "10" 10
+    `even? "10" 10
+    `odd? "9" 9
     `float? "42.42" 42.42
     `double? "42.42" 42.42
     `boolean? "true" true
@@ -57,6 +60,7 @@
     `ident? ":foo/bar" :foo/bar
     `simple-ident? ":foo" :foo
     `qualified-ident? ":foo/baz" :foo/baz
+    `keyword? "keyword" :keyword
     `keyword? ":keyword" :keyword
     `simple-keyword? ":simple-keyword" :simple-keyword
     `qualified-keyword? ":qualified/keyword" :qualified/keyword
@@ -65,11 +69,42 @@
     `qualified-symbol? "qualified/sym" 'qualified/sym
     `uuid? "d6e73cc5-95bc-496a-951c-87f11af0d839" #uuid "d6e73cc5-95bc-496a-951c-87f11af0d839"
     `nil? "nil" nil
+    `nil? "null" nil
     `false? "false" false
     `true? "true" true
     `zero? "0" 0
     #?@(:clj [`uri? "http://site.com" (URI. "http://site.com")])
-    #?@(:clj [`bigdec? "42.42" 42.42M])))
+    #?@(:clj [`bigdec? "42.42" 42.42M
+              `bigdec? "42.42M" 42.42M])))
+
+(sc/coerce `number? "42")                                   ; => 42.0
+(sc/coerce `integer? "42")                                  ; => 42
+(sc/coerce `int? "42")                                      ; => 42
+(sc/coerce `pos-int? "42")                                  ; => 42
+(sc/coerce `neg-int? "-42")                                 ; => -42
+(sc/coerce `nat-int? "10")                                  ; => 10
+(sc/coerce `even? "10")                                     ; => 10
+(sc/coerce `odd? "9")                                       ; => 9
+(sc/coerce `float? "42.42")                                 ; => 42.42
+(sc/coerce `double? "42.42")                                ; => 42.42
+(sc/coerce `boolean? "true")                                ; => true
+(sc/coerce `boolean? "false")                               ; => false
+(sc/coerce `ident? ":foo/bar")                              ; => :foo/bar
+(sc/coerce `simple-ident? ":foo")                           ; => :foo
+(sc/coerce `qualified-ident? ":foo/baz")                    ; => :foo/baz
+(sc/coerce `keyword? "keyword")                             ; => :keyword
+(sc/coerce `keyword? ":keyword")                            ; => :keyword
+(sc/coerce `simple-keyword? ":simple-keyword")              ; => :simple-keyword
+(sc/coerce `qualified-keyword? ":qualified/keyword")        ; => :qualified/keyword
+(sc/coerce `symbol? "sym")                                  ; => 'sym
+(sc/coerce `simple-symbol? "simple-sym")                    ; => 'simple-sym
+(sc/coerce `qualified-symbol? "qualified/sym")              ; => 'qualified/sym
+(sc/coerce `uuid? "d6e73cc5-95bc-496a-951c-87f11af0d839")   ; => #uuid "d6e73cc5-95bc-496a-951c-87f11af0d839"
+(sc/coerce `nil? "nil")                                     ; => nil
+(sc/coerce `nil? "null")                                    ; => nil
+(sc/coerce `false? "false")                                 ; => false
+(sc/coerce `true? "true")                                   ; => true
+(sc/coerce `zero? "0")                                      ; => 0
 
 (def test-gens
   {`inst? (s/gen (s/inst-in #inst "1980" #inst "9999"))})
@@ -82,14 +117,21 @@
          (str/replace #"\?" "_QMARK_")
          (js/eval))))
 
+(defn safe-gen [s sp]
+  (try
+    (or (test-gens s) (s/gen sp))
+    (catch #?(:clj Exception :cljs :default) _ nil)))
+
 (deftest test-coerce-generative
   (doseq [s (->> (methods sc/sym->coercer)
                  (keys)
                  (filter symbol?))
           :let [sp #?(:clj @(resolve s)
-                      :cljs (->js s))]]
+                      :cljs (->js s))
+                gen (safe-gen s sp)]
+          :when gen]
     (let [res (tc/quick-check 100
-                (prop/for-all [v (or (test-gens s) (s/gen sp))]
+                (prop/for-all [v gen]
                   (s/valid? sp (sc/coerce s (-> (pr-str v)
                                                 (str/replace #"^#[^\"]+\"|\"]?$"
                                                              ""))))))]

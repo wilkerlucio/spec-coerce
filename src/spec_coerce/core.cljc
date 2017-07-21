@@ -63,7 +63,11 @@
       (symbol x))
     x))
 
-(defn parse-nil [x] (if (= "nil" x) nil x))
+(defn parse-nil [x]
+  (if (and (string? x)
+           (#{"nil" "null"} (str/trim x)))
+    nil
+    x))
 
 #?(:clj
    (defn parse-bigdec [x]
@@ -87,6 +91,8 @@
 (defmethod sym->coercer `pos-int? [_] parse-long)
 (defmethod sym->coercer `neg-int? [_] parse-long)
 (defmethod sym->coercer `nat-int? [_] parse-long)
+(defmethod sym->coercer `even? [_] parse-long)
+(defmethod sym->coercer `odd? [_] parse-long)
 (defmethod sym->coercer `float? [_] parse-double)
 (defmethod sym->coercer `double? [_] parse-double)
 (defmethod sym->coercer `boolean? [_] parse-boolean)

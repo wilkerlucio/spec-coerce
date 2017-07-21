@@ -39,6 +39,14 @@ Learn by example:
 ; If you wanna play around or use a specific coercion, you can pass the predicate symbol directly
 (sc/coerce `int? "40"); => 40
 
+; To leverage map keys and coerce a composed structure, use coerce-structure
+(sc/coerce-structure {::number      "42"
+                      ::not-defined "bla"
+                      :sub          {::odd-number "45"}})
+; => {::some-coercion 42
+;     ::not-defined   "bla"
+;     :sub            {::infer-int 45}}
+
 ; If you want to set a custom coercer for a given spec, use the spec-coerce registry
 (defrecord SomeClass [x])
 (s/def ::my-custom-attr #(instance? SomeClass %))

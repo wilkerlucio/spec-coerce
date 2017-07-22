@@ -12,8 +12,6 @@ Spec Coerce will remain in alpha while clojure.spec still in alpha.
 
 ## Usage
 
-Spec coerce is a library that leverages spec information to coerce values according to their specification.
-
 Learn by example:
 
 ```clojure

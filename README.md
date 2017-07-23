@@ -89,6 +89,9 @@ Examples from predicate to coerced value:
 (sc/coerce `simple-symbol? "simple-sym")                    ; => 'simple-sym
 (sc/coerce `qualified-symbol? "qualified/sym")              ; => 'qualified/sym
 
+; Collections
+(sc/coerce `(s/coll-of int?) ["5" "11" "42"])               ; => [5 11 42]
+
 ; Others
 (sc/coerce `uuid? "d6e73cc5-95bc-496a-951c-87f11af0d839")   ; => #uuid "d6e73cc5-95bc-496a-951c-87f11af0d839"
 (sc/coerce `inst? "2017-07-21")                             ; => #inst "2017-07-21T00:00:00.000000000-00:00"

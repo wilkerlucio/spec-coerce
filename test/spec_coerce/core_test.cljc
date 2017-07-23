@@ -17,6 +17,7 @@
 (s/def ::infer-int int?)
 (s/def ::infer-and-spec (s/and int? #(> % 10)))
 (s/def ::infer-and-spec-indirect (s/and ::infer-int #(> % 10)))
+(s/def ::infer-form (s/coll-of int?))
 
 #?(:clj (s/def ::infer-bigdec? bigdec?))
 
@@ -66,6 +67,9 @@
     `false? "false" false
     `true? "true" true
     `zero? "0" 0
+
+    `(s/coll-of int?) ["11" "31" "42"] [11 31 42]
+
     #?@(:clj [`uri? "http://site.com" (URI. "http://site.com")])
     #?@(:clj [`bigdec? "42.42" 42.42M
               `bigdec? "42.42M" 42.42M])))
@@ -109,6 +113,7 @@
     ::infer-int "123" 123
     ::infer-and-spec "42" 42
     ::infer-and-spec-indirect "43" 43
+    ::infer-form ["20" "43"] [20 43]
     ::second-layer "41" 42
     ::second-layer-and "41" 42
 

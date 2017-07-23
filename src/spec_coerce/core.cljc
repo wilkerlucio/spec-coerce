@@ -9,6 +9,8 @@
      (:import (java.util UUID)
               (java.net URI))))
 
+(declare coerce)
+
 (s/def ::coerce-fn
   (s/fspec :args (s/cat :x string?) :ret any?))
 
@@ -69,6 +71,12 @@
     nil
     x))
 
+(defn parse-coll-of [[_ pred & _]]
+  (fn [x]
+    (if (sequential? x)
+      (into (empty x) (map (partial coerce pred)) x)
+      x)))
+
 #?(:clj
    (defn parse-bigdec [x]
      (if (string? x)
@@ -83,7 +91,11 @@
        (URI. x)
        x)))
 
-(defmulti sym->coercer identity)
+(defmulti sym->coercer
+  (fn [x]
+    (if (sequential? x)
+      (first x)
+      x)))
 
 (defmethod sym->coercer `number? [_] parse-double)
 (defmethod sym->coercer `integer? [_] parse-long)
@@ -111,7 +123,7 @@
 (defmethod sym->coercer `false? [_] parse-boolean)
 (defmethod sym->coercer `true? [_] parse-boolean)
 (defmethod sym->coercer `zero? [_] parse-long)
-;(defmethod sym->coercer `s/coll-of? [_] identity)
+(defmethod sym->coercer `s/coll-of [form] (parse-coll-of form))
 
 #?(:clj (defmethod sym->coercer `uri? [_] parse-uri))
 #?(:clj (defmethod sym->coercer `bigdec? [_] parse-bigdec))
@@ -138,9 +150,16 @@
 (defn accept-symbol [x]
   (if (qualified-symbol? x) x))
 
+(defn accept-symbol-call [spec]
+  (if (and (seq? spec)
+           (symbol? (first spec)))
+    spec))
+
 (defn spec->coerce-sym [spec]
   "Determine the main spec symbol from a spec form."
-  (let [f (or (safe-form spec) (accept-symbol spec))]
+  (let [f (or (safe-form spec)
+              (accept-symbol spec)
+              (accept-symbol-call spec))]
     (let [spec-def (form->spec f)]
       (if (qualified-keyword? spec-def)
         (recur spec-def)

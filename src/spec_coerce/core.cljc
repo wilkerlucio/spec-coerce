@@ -20,7 +20,8 @@
   (if (string? x)
     (try
       #?(:clj  (Long/parseLong x)
-         :cljs (js/parseInt x))
+         :cljs (let [v (js/parseInt x)]
+                 (if (js/isNaN v) x v)))
       (catch #?(:clj Exception :cljs :default) _
         x))
     x))
@@ -29,7 +30,8 @@
   (if (string? x)
     (try
       #?(:clj  (Double/parseDouble x)
-         :cljs (js/parseFloat x))
+         :cljs (let [v (js/parseFloat x)]
+                 (if (js/isNaN v) x v)))
       (catch #?(:clj Exception :cljs :default) _
         x))
     x))

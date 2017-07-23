@@ -70,13 +70,13 @@
     `zero? "0" 0
 
     `(s/coll-of int?) ["11" "31" "42"] [11 31 42]
-    `(s/coll-of int?) ["11" "31.2" "42"] [11 "31.2" 42]
+    `(s/coll-of int?) ["11" "foo" "42"] [11 "foo" 42]
 
     `(s/map-of keyword? int?) {"foo" "42" "bar" "31"} {:foo 42 :bar 31}
     `(s/map-of keyword? int?) "foo" "foo"
 
     `(s/or :int int? :double double? :bool boolean?) "42" 42
-    `(s/or :int int? :double double? :bool boolean?) "42.3" 42.3
+    `(s/or :double double? :bool boolean?) "42.3" 42.3
     `(s/or :int int? :double double? :bool boolean?) "true" true
 
     #?@(:clj [`uri? "http://site.com" (URI. "http://site.com")])
@@ -99,23 +99,24 @@
     (or (test-gens s) (s/gen sp))
     (catch #?(:clj Exception :cljs :default) _ nil)))
 
-(deftest test-coerce-generative
-  (doseq [s (->> (methods sc/sym->coercer)
-                 (keys)
-                 (filter symbol?))
-          :let [sp #?(:clj @(resolve s)
-                      :cljs (->js s))
-                gen (safe-gen s sp)]
-          :when gen]
-    (let [res (tc/quick-check 100
-                (prop/for-all [v gen]
-                  (s/valid? sp (sc/coerce s (-> (pr-str v)
-                                                (str/replace #"^#[^\"]+\"|\"]?$"
-                                                             ""))))))]
-      (if-not (= true (:result res))
-        (throw (ex-info (str "Error coercing " s)
-                        {:symbol s
-                         :result res}))))))
+#?(:clj
+   (deftest test-coerce-generative
+     (doseq [s (->> (methods sc/sym->coercer)
+                    (keys)
+                    (filter symbol?))
+             :let [sp #?(:clj @(resolve s)
+                         :cljs (->js s))
+                   gen        (safe-gen s sp)]
+             :when gen]
+       (let [res (tc/quick-check 100
+                   (prop/for-all [v gen]
+                     (s/valid? sp (sc/coerce s (-> (pr-str v)
+                                                   (str/replace #"^#[^\"]+\"|\"]?$"
+                                                                ""))))))]
+         (if-not (= true (:result res))
+           (throw (ex-info (str "Error coercing " s)
+                           {:symbol s
+                            :result res})))))))
 
 (deftest test-coerce-inference-test
   (are [keyword input output] (= (sc/coerce keyword input) output)

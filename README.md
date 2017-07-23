@@ -1,4 +1,4 @@
-# spec-coerce
+# spec-coerce [![Build Status](https://travis-ci.org/wilkerlucio/spec-coerce.svg?branch=master)](https://travis-ci.org/wilkerlucio/spec-coerce) 
 
 A Clojure(script) library designed to leverage your specs to coerce your information into correct types.
 

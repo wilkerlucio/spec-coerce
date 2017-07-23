@@ -99,24 +99,23 @@
     (or (test-gens s) (s/gen sp))
     (catch #?(:clj Exception :cljs :default) _ nil)))
 
-#?(:clj
-   (deftest test-coerce-generative
-     (doseq [s (->> (methods sc/sym->coercer)
-                    (keys)
-                    (filter symbol?))
-             :let [sp #?(:clj @(resolve s)
-                         :cljs (->js s))
-                   gen        (safe-gen s sp)]
-             :when gen]
-       (let [res (tc/quick-check 100
-                   (prop/for-all [v gen]
-                     (s/valid? sp (sc/coerce s (-> (pr-str v)
-                                                   (str/replace #"^#[^\"]+\"|\"]?$"
-                                                                ""))))))]
-         (if-not (= true (:result res))
-           (throw (ex-info (str "Error coercing " s)
-                           {:symbol s
-                            :result res})))))))
+(deftest test-coerce-generative
+  (doseq [s (->> (methods sc/sym->coercer)
+                 (keys)
+                 (filter symbol?))
+          :let [sp #?(:clj @(resolve s)
+                      :cljs (->js s))
+                gen        (safe-gen s sp)]
+          :when gen]
+    (let [res (tc/quick-check 100
+                (prop/for-all [v gen]
+                  (s/valid? sp (sc/coerce s (-> (pr-str v)
+                                                (str/replace #"^#[^\"]+\"|\"]?$"
+                                                             ""))))))]
+      (if-not (= true (:result res))
+        (throw (ex-info (str "Error coercing " s)
+                        {:symbol s
+                         :result res}))))))
 
 (deftest test-coerce-inference-test
   (are [keyword input output] (= (sc/coerce keyword input) output)

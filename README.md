@@ -74,6 +74,10 @@ Examples from predicate to coerced value:
 (sc/coerce `double? "42.42")                                ; => 42.42
 (sc/coerce `zero? "0")                                      ; => 0
 
+; Numbers on CLJS
+(sc/coerce `int? "NaN")                                     ; => js/NaN
+(sc/coerce `double? "NaN")                                  ; => js/NaN
+
 ; Booleans
 (sc/coerce `boolean? "true")                                ; => true
 (sc/coerce `boolean? "false")                               ; => false

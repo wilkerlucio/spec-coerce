@@ -35,7 +35,11 @@ Learn by example:
 (sc/coerce ::extended "11") ; => 11
 
 ; If you wanna play around or use a specific coercion, you can pass the predicate symbol directly
-(sc/coerce `int? "40"); => 40
+(sc/coerce `int? "40") ; => 40
+
+; Parsers are written to be safe to call, when unable to coerce they will return the original value
+(sc/coerce `int? "40.2") ; => "40.2" 
+(sc/coerce `inst? "date") ; => "date" 
 
 ; To leverage map keys and coerce a composed structure, use coerce-structure
 (sc/coerce-structure {::number      "42"
@@ -91,6 +95,14 @@ Examples from predicate to coerced value:
 
 ; Collections
 (sc/coerce `(s/coll-of int?) ["5" "11" "42"])               ; => [5 11 42]
+(sc/coerce `(s/coll-of int?) ["5" "11.3" "42"])             ; => [5 "11.3" 42]
+
+; Braching
+; tests are realized in order
+(sc/coerce `(s/or :int int? :bool boolean?) "40")           ; 40
+(sc/coerce `(s/or :int int? :bool boolean?) "true")         ; true
+; returns original value when no options can handle
+(sc/coerce `(s/or :int int? :bool boolean?) "nil")          ; "nil"
 
 ; Others
 (sc/coerce `uuid? "d6e73cc5-95bc-496a-951c-87f11af0d839")   ; => #uuid "d6e73cc5-95bc-496a-951c-87f11af0d839"
@@ -109,7 +121,6 @@ Examples from predicate to coerced value:
 Here is a list of features on track for implementation:
 
 * Support `map-of` to coerce homogeneos maps
-* Support `s/or`, trying each option
 * Coercion overrides map to specify contextual coercions
 
 ## License

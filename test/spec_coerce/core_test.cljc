@@ -69,6 +69,11 @@
     `zero? "0" 0
 
     `(s/coll-of int?) ["11" "31" "42"] [11 31 42]
+    `(s/coll-of int?) ["11" "31.2" "42"] [11 "31.2" 42]
+
+    `(s/or :int int? :double double? :bool boolean?) "42" 42
+    `(s/or :int int? :double double? :bool boolean?) "42.3" 42.3
+    `(s/or :int int? :double double? :bool boolean?) "true" true
 
     #?@(:clj [`uri? "http://site.com" (URI. "http://site.com")])
     #?@(:clj [`bigdec? "42.42" 42.42M

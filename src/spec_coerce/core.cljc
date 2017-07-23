@@ -18,26 +18,38 @@
 
 (defn parse-long [x]
   (if (string? x)
-    #?(:clj  (Long/parseLong x)
-       :cljs (js/parseInt x))
+    (try
+      #?(:clj  (Long/parseLong x)
+         :cljs (js/parseInt x))
+      (catch #?(:clj Exception :cljs :default) _
+        x))
     x))
 
 (defn parse-double [x]
   (if (string? x)
-    #?(:clj  (Double/parseDouble x)
-       :cljs (js/parseFloat x))
+    (try
+      #?(:clj  (Double/parseDouble x)
+         :cljs (js/parseFloat x))
+      (catch #?(:clj Exception :cljs :default) _
+        x))
     x))
 
 (defn parse-uuid [x]
   (if (string? x)
-    #?(:clj  (UUID/fromString x)
-       :cljs (uuid x))
+    (try
+      #?(:clj  (UUID/fromString x)
+         :cljs (uuid x))
+      (catch #?(:clj Exception :cljs :default) _
+        x))
     x))
 
 (defn parse-inst [x]
   (if (string? x)
-    #?(:clj  (clojure.instant/read-instant-timestamp x)
-       :cljs (js/Date. x))
+    (try
+      #?(:clj  (clojure.instant/read-instant-timestamp x)
+         :cljs (js/Date. x))
+      (catch #?(:clj Exception :cljs :default) _
+        x))
     x))
 
 (defn parse-boolean [x]
@@ -71,10 +83,30 @@
     nil
     x))
 
+(defn parse-or [[_ & pairs]]
+  (fn [x]
+    (reduce
+      (fn [x [_ pred]]
+        (let [coerced (coerce pred x)]
+          (if (= x coerced)
+            x
+            (reduced coerced))))
+      x
+      (partition 2 pairs))))
+
 (defn parse-coll-of [[_ pred & _]]
   (fn [x]
     (if (sequential? x)
       (into (empty x) (map (partial coerce pred)) x)
+      x)))
+
+(defn parse-map-of [[_ kpred vpred & _]]
+  (fn [x]
+    (if (associative? x)
+      (into {} (map (fn [[k v]]
+                      [(coerce kpred k)
+                       (coerce vpred v)]))
+            x)
       x)))
 
 #?(:clj
@@ -123,7 +155,9 @@
 (defmethod sym->coercer `false? [_] parse-boolean)
 (defmethod sym->coercer `true? [_] parse-boolean)
 (defmethod sym->coercer `zero? [_] parse-long)
+(defmethod sym->coercer `s/or [form] (parse-or form))
 (defmethod sym->coercer `s/coll-of [form] (parse-coll-of form))
+(defmethod sym->coercer `s/map-of [form] (parse-map-of form))
 
 #?(:clj (defmethod sym->coercer `uri? [_] parse-uri))
 #?(:clj (defmethod sym->coercer `bigdec? [_] parse-bigdec))

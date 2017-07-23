@@ -5,7 +5,7 @@ A Clojure(script) library designed to leverage your specs to coerce your informa
 ## Latest version
 
 ```
-[spec-coerce "1.0.0-alpha3"]
+[spec-coerce "1.0.0-alpha4"]
 ```
 
 Spec Coerce will remain in alpha while clojure.spec still in alpha.
@@ -73,6 +73,10 @@ Examples from predicate to coerced value:
 (sc/coerce `float? "42.42")                                 ; => 42.42
 (sc/coerce `double? "42.42")                                ; => 42.42
 (sc/coerce `zero? "0")                                      ; => 0
+
+; Numbers on CLJS
+(sc/coerce `int? "NaN")                                     ; => js/NaN
+(sc/coerce `double? "NaN")                                  ; => js/NaN
 
 ; Booleans
 (sc/coerce `boolean? "true")                                ; => true

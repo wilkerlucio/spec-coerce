@@ -70,13 +70,13 @@
     `zero? "0" 0
 
     `(s/coll-of int?) ["11" "31" "42"] [11 31 42]
-    `(s/coll-of int?) ["11" "31.2" "42"] [11 "31.2" 42]
+    `(s/coll-of int?) ["11" "foo" "42"] [11 "foo" 42]
 
     `(s/map-of keyword? int?) {"foo" "42" "bar" "31"} {:foo 42 :bar 31}
     `(s/map-of keyword? int?) "foo" "foo"
 
     `(s/or :int int? :double double? :bool boolean?) "42" 42
-    `(s/or :int int? :double double? :bool boolean?) "42.3" 42.3
+    `(s/or :double double? :bool boolean?) "42.3" 42.3
     `(s/or :int int? :double double? :bool boolean?) "true" true
 
     #?@(:clj [`uri? "http://site.com" (URI. "http://site.com")])
@@ -105,7 +105,7 @@
                  (filter symbol?))
           :let [sp #?(:clj @(resolve s)
                       :cljs (->js s))
-                gen (safe-gen s sp)]
+                gen        (safe-gen s sp)]
           :when gen]
     (let [res (tc/quick-check 100
                 (prop/for-all [v gen]

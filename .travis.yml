@@ -6,4 +6,3 @@ cache:
   - $HOME/.m2
 script:
   - lein test
-  - lein doo node test-build once

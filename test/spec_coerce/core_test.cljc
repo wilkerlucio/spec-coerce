@@ -39,6 +39,7 @@
 (deftest test-coerce-from-predicates
   (are [predicate input output] (= (sc/coerce predicate input) output)
     `number? "42" 42.0
+    `number? "foo" "foo"
     `integer? "42" 42
     `int? "42" 42
     `pos-int? "42" 42
@@ -70,6 +71,9 @@
 
     `(s/coll-of int?) ["11" "31" "42"] [11 31 42]
     `(s/coll-of int?) ["11" "31.2" "42"] [11 "31.2" 42]
+
+    `(s/map-of keyword? int?) {"foo" "42" "bar" "31"} {:foo 42 :bar 31}
+    `(s/map-of keyword? int?) "foo" "foo"
 
     `(s/or :int int? :double double? :bool boolean?) "42" 42
     `(s/or :int int? :double double? :bool boolean?) "42.3" 42.3

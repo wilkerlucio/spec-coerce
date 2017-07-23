@@ -96,6 +96,8 @@ Examples from predicate to coerced value:
 ; Collections
 (sc/coerce `(s/coll-of int?) ["5" "11" "42"])               ; => [5 11 42]
 (sc/coerce `(s/coll-of int?) ["5" "11.3" "42"])             ; => [5 "11.3" 42]
+(sc/coerce `(s/map-of keyword? int?) {"foo" "42" "bar" "31"})
+; => {:foo 42 :bar 31}
 
 ; Braching
 ; tests are realized in order
@@ -120,7 +122,6 @@ Examples from predicate to coerced value:
 
 Here is a list of features on track for implementation:
 
-* Support `map-of` to coerce homogeneos maps
 * Coercion overrides map to specify contextual coercions
 
 ## License

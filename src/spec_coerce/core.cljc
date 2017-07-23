@@ -100,6 +100,15 @@
       (into (empty x) (map (partial coerce pred)) x)
       x)))
 
+(defn parse-map-of [[_ kpred vpred & _]]
+  (fn [x]
+    (if (associative? x)
+      (into {} (map (fn [[k v]]
+                      [(coerce kpred k)
+                       (coerce vpred v)]))
+            x)
+      x)))
+
 #?(:clj
    (defn parse-bigdec [x]
      (if (string? x)
@@ -148,6 +157,7 @@
 (defmethod sym->coercer `zero? [_] parse-long)
 (defmethod sym->coercer `s/or [form] (parse-or form))
 (defmethod sym->coercer `s/coll-of [form] (parse-coll-of form))
+(defmethod sym->coercer `s/map-of [form] (parse-map-of form))
 
 #?(:clj (defmethod sym->coercer `uri? [_] parse-uri))
 #?(:clj (defmethod sym->coercer `bigdec? [_] parse-bigdec))

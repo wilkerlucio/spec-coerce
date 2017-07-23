@@ -89,10 +89,6 @@ Examples from predicate to coerced value:
 (sc/coerce `simple-symbol? "simple-sym")                    ; => 'simple-sym
 (sc/coerce `qualified-symbol? "qualified/sym")              ; => 'qualified/sym
 
-; Collections
-; not there yet 
-; (sc/coerce `(s/coll-of int?) ["5" "11" "42"])               ; => [5 11 42]
-
 ; Others
 (sc/coerce `uuid? "d6e73cc5-95bc-496a-951c-87f11af0d839")   ; => #uuid "d6e73cc5-95bc-496a-951c-87f11af0d839"
 (sc/coerce `inst? "2017-07-21")                             ; => #inst "2017-07-21T00:00:00.000000000-00:00"
@@ -103,16 +99,6 @@ Examples from predicate to coerced value:
 (sc/coerce `uri? "http://site.com") ; => (URI. "http://site.com")
 (sc/coerce `bigdec? "42.42") ; => 42.42M
 (sc/coerce `bigdec? "42.42M") ; => 42.42M
-```
-
-### Adding new predicates
-
-The conversion from symbol to parser is a open multi-method, you can extend it
-by adding new methods with the qualified symbol of the predicate:
-
-```clojure
-(defmethod sc/sym->coercer [_]
-  )
 ```
 
 ## Next Features

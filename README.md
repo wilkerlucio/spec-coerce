@@ -54,9 +54,10 @@ Learn by example:
 (sc/coerce ::my-custom-attr "Z") ; => #user.SomeClass{:x "Z"}
 ```
 
-Extensive list of examples from predicate to coerced value:
+Examples from predicate to coerced value:
 
 ```clojure
+; Numbers
 (sc/coerce `number? "42")                                   ; => 42.0
 (sc/coerce `integer? "42")                                  ; => 42
 (sc/coerce `int? "42")                                      ; => 42
@@ -67,8 +68,15 @@ Extensive list of examples from predicate to coerced value:
 (sc/coerce `odd? "9")                                       ; => 9
 (sc/coerce `float? "42.42")                                 ; => 42.42
 (sc/coerce `double? "42.42")                                ; => 42.42
+(sc/coerce `zero? "0")                                      ; => 0
+
+; Booleans
 (sc/coerce `boolean? "true")                                ; => true
 (sc/coerce `boolean? "false")                               ; => false
+(sc/coerce `true? "true")                                   ; => true
+(sc/coerce `false? "false")                                 ; => false
+
+; Idents
 (sc/coerce `ident? ":foo/bar")                              ; => :foo/bar
 (sc/coerce `ident? "foo/bar")                               ; => 'foo/bar
 (sc/coerce `simple-ident? ":foo")                           ; => :foo
@@ -80,18 +88,27 @@ Extensive list of examples from predicate to coerced value:
 (sc/coerce `symbol? "sym")                                  ; => 'sym
 (sc/coerce `simple-symbol? "simple-sym")                    ; => 'simple-sym
 (sc/coerce `qualified-symbol? "qualified/sym")              ; => 'qualified/sym
+
+; Others
 (sc/coerce `uuid? "d6e73cc5-95bc-496a-951c-87f11af0d839")   ; => #uuid "d6e73cc5-95bc-496a-951c-87f11af0d839"
 (sc/coerce `inst? "2017-07-21")                             ; => #inst "2017-07-21T00:00:00.000000000-00:00"
 (sc/coerce `nil? "nil")                                     ; => nil
 (sc/coerce `nil? "null")                                    ; => nil
-(sc/coerce `false? "false")                                 ; => false
-(sc/coerce `true? "true")                                   ; => true
-(sc/coerce `zero? "0")                                      ; => 0
 
 ;; Clojure only:
 (sc/coerce `uri? "http://site.com") ; => (URI. "http://site.com")
 (sc/coerce `bigdec? "42.42") ; => 42.42M
 (sc/coerce `bigdec? "42.42M") ; => 42.42M
+```
+
+### Adding new predicates
+
+The conversion from symbol to parser is a open multi-method, you can extend it
+by adding new methods with the qualified symbol of the predicate:
+
+```clojure
+(defmethod sc/sym->coercer [_]
+  )
 ```
 
 ## Next Features

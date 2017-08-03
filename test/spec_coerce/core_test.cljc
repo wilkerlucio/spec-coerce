@@ -134,4 +134,14 @@
                                :sub            {::infer-int "42"}})
          {::some-coercion 321
           ::not-defined   "bla"
+          :sub            {::infer-int 42}}))
+  (is (= (sc/coerce-structure {::some-coercion "321"
+                               ::not-defined   "bla"
+                               :unqualified    "12"
+                               :sub            {::infer-int "42"}}
+                              {::sc/overrides {::not-defined `keyword?
+                                               :unqualified  ::infer-int}})
+         {::some-coercion 321
+          ::not-defined   :bla
+          :unqualified    12
           :sub            {::infer-int 42}})))

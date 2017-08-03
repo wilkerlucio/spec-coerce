@@ -273,14 +273,18 @@
                :coercion any?)
   :ret qualified-keyword?)
 
-(defn coerce-structure [x]
+(defn coerce-structure
   "Recursively coerce map values on a structure."
-  (walk/prewalk (fn [x]
-                  (if (map? x)
-                    (with-meta (into {} (map (fn [[k v]] [k (coerce k v)])) x)
-                               (meta x))
-                    x))
-                x))
+  ([x] (coerce-structure x {}))
+  ([x {::keys [overrides]}]
+    (walk/prewalk (fn [x]
+                    (if (map? x)
+                      (with-meta (into {} (map (fn [[k v]]
+                                                 (let [coercion (get overrides k k)]
+                                                   [k (coerce coercion v)]))) x)
+                                 (meta x))
+                      x))
+                  x)))
 
 (s/fdef coerce-structure
   :args (s/cat :x any?)

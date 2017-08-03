@@ -5,7 +5,7 @@ A Clojure(script) library designed to leverage your specs to coerce your informa
 ## Latest version
 
 ```
-[spec-coerce "1.0.0-alpha4"]
+[spec-coerce "1.0.0-alpha5"]
 ```
 
 Spec Coerce will remain in alpha while clojure.spec still in alpha.
@@ -134,12 +134,6 @@ Examples from predicate to coerced value:
 (sc/coerce `bigdec? "42.42") ; => 42.42M
 (sc/coerce `bigdec? "42.42M") ; => 42.42M
 ```
-
-## Next Features
-
-Here is a list of features on track for implementation:
-
-* Coercion overrides map to specify contextual coercions
 
 ## License
 

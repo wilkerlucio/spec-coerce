@@ -49,6 +49,19 @@ Learn by example:
 ;     ::not-defined "bla"
 ;     :sub          {::odd-number 45}}
 
+; coerce-structure supports overrides, so you can set a custom coercer for a specific context, and can be also a point
+; to set coercer for unqualified keys
+(sc/coerce-structure {::number      "42"
+                      ::not-defined "bla"
+                      :unqualified  "12"
+                      :sub          {::odd-number "45"}}
+                      {::sc/overrides {::not-defined `keyword?
+                                       :unqualified  ::number}})
+; => {::number      42
+;     ::not-defined :bla
+;     :unqualified  12
+;     :sub          {::odd-number 45}}
+
 ; If you want to set a custom coercer for a given spec, use the spec-coerce registry
 (defrecord SomeClass [x])
 (s/def ::my-custom-attr #(instance? SomeClass %))

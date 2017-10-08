@@ -1,6 +1,7 @@
 (ns spec-coerce.core
   (:refer-clojure :exclude [def])
-  (:require [clojure.spec.alpha :as s]
+  (:require [com.wsscode.spec-inspec :as si]
+            [clojure.spec.alpha :as s]
             [clojure.walk :as walk]
             [clojure.string :as str]
     #?(:clj
@@ -174,65 +175,19 @@
   :args (s/cat :sym symbol?)
   :ret ::coerce-fn)
 
-(defn safe-form [spec]
-  (if (contains? (s/registry) spec)
-    (s/form spec)))
-
-(defn form->spec [and-spec]
-  (if (and (seq? and-spec)
-           (= (first and-spec) `s/and))
-    (second and-spec)
-    and-spec))
-
-(defn accept-keyword [x]
-  (if (qualified-keyword? x) x))
-
-(defn accept-symbol [x]
-  (if (qualified-symbol? x) x))
-
-(defn accept-symbol-call [spec]
-  (if (and (seq? spec)
-           (symbol? (first spec)))
-    spec))
-
-(defn spec->coerce-sym [spec]
-  "Determine the main spec symbol from a spec form."
-  (let [f (or (safe-form spec)
-              (accept-symbol spec)
-              (accept-symbol-call spec))]
-    (let [spec-def (form->spec f)]
-      (if (qualified-keyword? spec-def)
-        (recur spec-def)
-        spec-def))))
-
 (defn infer-coercion [k]
   "Infer a coercer function from a given spec."
-  (-> (spec->coerce-sym k)
+  (-> (si/spec->root-sym k)
       (sym->coercer)))
 
 (s/fdef infer-coercion
   :args (s/cat :k qualified-keyword?)
   :ret ::coerce-fn)
 
-(defn parent-coercer [k]
-  "Look up for the parent coercer using the spec hierarchy."
-  (or (-> (s/get-spec k) accept-keyword)
-      (-> (form->spec (safe-form k)) accept-keyword)))
-
-(s/fdef parent-coercer
-  :args (s/cat :k qualified-keyword?)
-  :ret (s/nilable ::coerce-fn))
-
-(defn find-registry-coerce [k]
-  (if-let [c (get @registry-ref k)]
-    c
-    (when-let [parent (-> (parent-coercer k) accept-keyword)]
-      (recur parent))))
-
 (defn coerce-fn [k]
   "Get the coercing function from a given key. First it tries to lookup the coercion
   on the registry, otherwise try to infer from the specs. In case nothing is found, identity function is returned."
-  (or (find-registry-coerce k)
+  (or (si/registry-lookup @registry-ref k)
       (infer-coercion k)))
 
 (s/fdef coerce-fn

@@ -6,7 +6,7 @@
 
   :plugins [[lein-doo "0.1.7"]]
 
-  :dependencies [[com.wsscode/spec-inspec "1.0.0-alpha1"]]
+  :dependencies [[com.wsscode/spec-inspec "1.0.0-alpha2"]]
 
   :source-paths ["src"]
   :test-paths ["test"]

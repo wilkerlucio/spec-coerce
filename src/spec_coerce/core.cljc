@@ -171,8 +171,25 @@
 
 (defmethod sym->coercer :default [_] identity)
 
+(defn- keys-parser
+  [[_ & {:keys [req-un opt-un]}]]
+  (let [keys-mapping (into {} (map #(vector (keyword (name %)) %) (concat req-un opt-un)))]
+    (fn [x]
+      (with-meta
+        (reduce-kv (fn [m k v]
+                     (assoc m k (coerce (or (keys-mapping k) k) v)))
+                   {}
+                   x)
+        (meta x)))))
+
+(defmethod sym->coercer `s/keys
+  [form]
+  (keys-parser form))
+
+
 (s/fdef sym->coercer
-  :args (s/cat :sym symbol?)
+  :args (s/cat :x (s/or :sym symbol?
+                        :form sequential?))
   :ret ::coerce-fn)
 
 (defn infer-coercion [k]

@@ -148,3 +148,21 @@
           ::not-defined   :bla
           :unqualified    12
           :sub            {::infer-int 42}})))
+
+(s/def ::bool boolean?)
+(s/def ::simple-keys (s/keys :req [::infer-int]
+                             :opt [::bool]))
+(s/def ::nested-keys (s/keys :req [::infer-form ::simple-keys]
+                             :req-un [::bool]))
+
+(deftest test-coerce-keys
+  (is (= {::infer-int 123}
+         (sc/coerce ::simple-keys {::infer-int "123"})))
+  (is (= {::infer-form [1 2 3]
+          ::simple-keys   {::infer-int 456
+                           ::bool      true}
+          :bool true}
+         (sc/coerce ::nested-keys {::infer-form  ["1" "2" "3"]
+                                   ::simple-keys {::infer-int "456"
+                                                  ::bool      "true"}
+                                   :bool         "true"}))))

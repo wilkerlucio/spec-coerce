@@ -7,12 +7,15 @@
             [clojure.test.check :as tc]
             [clojure.test.check.generators]
             [clojure.test.check.properties :as prop]
+            [clojure.spec.test.alpha :as st]
     #?(:clj
             [clojure.test.check.clojure-test :refer [defspec]])
     #?(:cljs [clojure.test.check.clojure-test :refer-macros [defspec]])
             [spec-coerce.core :as sc])
   #?(:clj
      (:import (java.net URI))))
+
+#?(:clj (st/instrument))
 
 (s/def ::infer-int int?)
 (s/def ::infer-and-spec (s/and int? #(> % 10)))

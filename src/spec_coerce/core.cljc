@@ -12,9 +12,6 @@
 
 (declare coerce)
 
-(s/def ::coerce-fn
-  (s/fspec :args (s/cat :x string?) :ret any?))
-
 (defonce ^:private registry-ref (atom {}))
 
 (defn parse-long [x]
@@ -32,7 +29,14 @@
 (defn parse-double [x]
   (if (string? x)
     (try
-      #?(:clj  (Double/parseDouble x)
+      #?(:clj  (case x
+                 "##-Inf" ##-Inf
+                 "##Inf" ##Inf
+                 "##NaN" ##NaN
+                 "NaN" ##NaN
+                 "Infinity" ##Inf
+                 "-Infinity" ##-Inf
+                 (Double/parseDouble x))
          :cljs (if (= "NaN" x)
                  js/NaN
                  (let [v (js/parseFloat x)]
@@ -186,30 +190,17 @@
   [form]
   (keys-parser form))
 
-
-(s/fdef sym->coercer
-  :args (s/cat :x (s/or :sym symbol?
-                        :form sequential?))
-  :ret ::coerce-fn)
-
 (defn infer-coercion [k]
   "Infer a coercer function from a given spec."
   (-> (si/spec->root-sym k)
       (sym->coercer)))
 
-(s/fdef infer-coercion
-  :args (s/cat :k qualified-keyword?)
-  :ret ::coerce-fn)
-
 (defn coerce-fn [k]
   "Get the coercing function from a given key. First it tries to lookup the coercion
   on the registry, otherwise try to infer from the specs. In case nothing is found, identity function is returned."
-  (or (si/registry-lookup @registry-ref k)
+  (or (when (qualified-keyword? k)
+        (si/registry-lookup @registry-ref k))
       (infer-coercion k)))
-
-(s/fdef coerce-fn
-  :args (s/cat :k qualified-keyword?)
-  :ret ::coerce-fn)
 
 (defn coerce [k x]
   "Coerce a value x using coercer k. This function will first try to use
@@ -220,10 +211,6 @@
     (coerce-fn x)
     x))
 
-(s/fdef coerce
-  :args (s/cat :k qualified-keyword? :x any?)
-  :ret any?)
-
 (defn ^:skip-wiki def-impl [k coerce-fn]
   (assert (and (ident? k) (namespace k)) "k must be namespaced keyword")
   (swap! registry-ref assoc k coerce-fn)
@@ -231,7 +218,7 @@
 
 (s/fdef def-impl
   :args (s/cat :k qualified-keyword?
-               :coercion ::coerce-fn)
+               :coercion ifn?)
   :ret any?)
 
 (defmacro def
@@ -257,7 +244,3 @@
                                  (meta x))
                       x))
                   x)))
-
-(s/fdef coerce-structure
-  :args (s/cat :x any?)
-  :ret any?)

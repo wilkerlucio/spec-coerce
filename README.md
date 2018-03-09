@@ -131,8 +131,8 @@ Examples from predicate to coerced value:
 
 ;; Clojure only:
 (sc/coerce `uri? "http://site.com") ; => (URI. "http://site.com")
-(sc/coerce `bigdec? "42.42") ; => 42.42M
-(sc/coerce `bigdec? "42.42M") ; => 42.42M
+(sc/coerce `decimal? "42.42") ; => 42.42M
+(sc/coerce `decimal? "42.42M") ; => 42.42M
 ```
 
 ## License

@@ -1,5 +1,12 @@
 # Change Log
 
+## [1.0.0-alpha6]
+- Support `s/keys`
+- More tolerant specs for internals
+- Support 1.9 special numbers (`##-Inf` `##Inf` `##NaN` `NaN` `Infinity` `-Infinity`)
+- Use `decimal?` instead of `bigdec?` (Clojure 1.9)
+- Thanks to `joodie` for these updates!
+
 ## [1.0.0-alpha5]
 - Support overrides on `sc/coerce-structure`
 

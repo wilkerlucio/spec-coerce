@@ -19,7 +19,7 @@
 (s/def ::infer-and-spec-indirect (s/and ::infer-int #(> % 10)))
 (s/def ::infer-form (s/coll-of int?))
 
-#?(:clj (s/def ::infer-bigdec? bigdec?))
+#?(:clj (s/def ::infer-decimal? decimal?))
 
 (sc/def ::some-coercion sc/parse-long)
 
@@ -80,8 +80,8 @@
     `(s/or :int int? :double double? :bool boolean?) "true" true
 
     #?@(:clj [`uri? "http://site.com" (URI. "http://site.com")])
-    #?@(:clj [`bigdec? "42.42" 42.42M
-              `bigdec? "42.42M" 42.42M])))
+    #?@(:clj [`decimal? "42.42" 42.42M
+              `decimal? "42.42M" 42.42M])))
 
 (def test-gens
   {`inst? (s/gen (s/inst-in #inst "1980" #inst "9999"))})
@@ -126,7 +126,7 @@
     ::second-layer "41" 42
     ::second-layer-and "41" 42
 
-    #?@(:clj [::infer-bigdec? "123.4" 123.4M])))
+    #?@(:clj [::infer-decimal? "123.4" 123.4M])))
 
 (deftest test-coerce-structure
   (is (= (sc/coerce-structure {::some-coercion "321"

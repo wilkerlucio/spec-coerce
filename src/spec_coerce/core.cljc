@@ -117,7 +117,7 @@
       x)))
 
 #?(:clj
-   (defn parse-bigdec [x]
+   (defn parse-decimal [x]
      (if (string? x)
        (if (str/ends-with? x "M")
          (bigdec (subs x 0 (dec (count x))))
@@ -167,7 +167,7 @@
 (defmethod sym->coercer `s/map-of [form] (parse-map-of form))
 
 #?(:clj (defmethod sym->coercer `uri? [_] parse-uri))
-#?(:clj (defmethod sym->coercer `bigdec? [_] parse-bigdec))
+#?(:clj (defmethod sym->coercer `decimal? [_] parse-decimal))
 
 (defmethod sym->coercer :default [_] identity)
 

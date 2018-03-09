@@ -1,4 +1,4 @@
-(defproject nl.zeekat/spec-coerce "1.0.0-alpha6-SNAPSHOT"
+(defproject spec-coerce "1.0.0-alpha6-SNAPSHOT"
   :description "Coerce from specs"
   :url "http://example.com/FIXME"
   :license {:name "Eclipse Public License"

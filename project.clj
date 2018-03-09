@@ -19,7 +19,7 @@
                                        :optimizations :none}}]}
 
   :profiles {:dev  {:dependencies [[org.clojure/test.check "0.9.0"]
-                                   [org.clojure/clojure "1.9.0-alpha17"]
+                                   [org.clojure/clojure "1.9.0"]
                                    [org.clojure/clojurescript "1.9.671"]]}
 
-             :test {:dependencies [[org.clojure/clojure "1.9.0-alpha17"]]}})
+             :test {:dependencies [[org.clojure/clojure "1.9.0"]]}})

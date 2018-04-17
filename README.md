@@ -116,7 +116,7 @@ Examples from predicate to coerced value:
 (sc/coerce `(s/map-of keyword? int?) {"foo" "42" "bar" "31"})
 ; => {:foo 42 :bar 31}
 
-; Braching
+; Branching
 ; tests are realized in order
 (sc/coerce `(s/or :int int? :bool boolean?) "40")           ; 40
 (sc/coerce `(s/or :int int? :bool boolean?) "true")         ; true

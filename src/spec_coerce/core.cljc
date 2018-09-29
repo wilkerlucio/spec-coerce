@@ -70,10 +70,18 @@
        (catch Exception _
          (let [zone (ZoneId/of (.getID (TimeZone/getDefault)))]
            (or (some #(try
-                        (Date/from (.toInstant (.atZone (LocalDateTime/parse x (DateTimeFormatter/ofPattern %)) zone)))
+                        (Date/from
+                         (.toInstant
+                          (.atZone
+                           (LocalDateTime/parse x (DateTimeFormatter/ofPattern %))
+                           zone)))
                         (catch Exception _)) *inst-formats*)
                (some #(try
-                        (Date/from (.toInstant (.atStartOfDay (LocalDate/parse x (DateTimeFormatter/ofPattern %)) zone)))
+                        (Date/from
+                         (.toInstant
+                          (.atStartOfDay
+                           (LocalDate/parse x (DateTimeFormatter/ofPattern %))
+                           zone)))
                         (catch Exception _)) *inst-formats*)
                x))))))
 
@@ -83,7 +91,6 @@
       #?(:clj  (flexible-parse-inst x)
          :cljs (js/Date. x))
       (catch #?(:clj Exception :cljs :default) _
-        (println "what?" (.getMessage _))
         x))
     x))
 

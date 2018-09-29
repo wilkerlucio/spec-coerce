@@ -1,5 +1,9 @@
 # Change Log
 
+## [1.0.0-??? in progress]
+- `inst?` coercion now accepts a wider range of date & date/time patterns
+- `spec-coerce.core/*inst-format*` is dynamic and can be rebound if you need more formats
+
 ## [1.0.0-alpha6]
 - Support `s/keys`
 - More tolerant specs for internals
@@ -17,9 +21,9 @@
 
 ## [1.0.0-alpha3]
 
-- Support `s/coll-of` predicate. 
-- Support `s/map-of` predicate. 
-- Support `s/or` predicate. 
+- Support `s/coll-of` predicate.
+- Support `s/map-of` predicate.
+- Support `s/or` predicate.
 
 ## [1.0.0-alpha2]
 

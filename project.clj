@@ -11,6 +11,8 @@
   :source-paths ["src"]
   :test-paths ["test"]
 
+  :jvm-opts ["-Duser.timezone=GMT"]
+
   :cljsbuild {:builds [{:id           "test-build"
                         :source-paths ["src" "test"]
                         :compiler     {:output-to     "out/testable.js"
@@ -20,6 +22,6 @@
 
   :profiles {:dev  {:dependencies [[org.clojure/test.check "0.9.0"]
                                    [org.clojure/clojure "1.9.0"]
-                                   [org.clojure/clojurescript "1.9.671"]]}
+                                   [org.clojure/clojurescript "1.9.946"]]}
 
              :test {:dependencies [[org.clojure/clojure "1.9.0"]]}})

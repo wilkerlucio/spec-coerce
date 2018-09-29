@@ -120,6 +120,16 @@
                         {:symbol s
                          :result res}))))))
 
+#?(:clj (deftest test-coerce-inst
+          (are [input output] (= (.getTime (sc/coerce `inst? input)) (.getTime output))
+            "9/28/2018 22:06" #inst "2018-09-28T22:06"
+            (str "Fri Sep 28 22:06:52 " (.getID (java.util.TimeZone/getDefault)) " 2018") #inst "2018-09-28T22:06:52"
+            "2018-09-28" #inst "2018-09-28")))
+   :cljs (deftest test-coerce-inst
+          (are [input output] (= (sc/coerce `inst? input) output)
+            "9/28/2018 22:06" #inst "2018-09-28T22:06"
+            "2018-09-28" #inst "2018-09-28")))
+
 (deftest test-coerce-inference-test
   (are [keyword input output] (= (sc/coerce keyword input) output)
     ::infer-int "123" 123

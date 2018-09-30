@@ -221,17 +221,23 @@
   [form]
   (keys-parser form))
 
-(defn pull-nilable [k]
-  (if (and (seq? k)
-           (= `s/nilable (first k)))
-    (second k)
-    k))
+(defn nilable-spec? [spec]
+  (and (seq? spec)
+       (= `s/nilable (first spec))))
+
+(defn pull-nilable [spec]
+  (if (nilable-spec? spec)
+    (second spec)
+    spec))
 
 (defn infer-coercion [k]
   "Infer a coercer function from a given spec."
-  (-> (si/spec->root-sym k)
-      (pull-nilable)
-      (sym->coercer)))
+  (let [root-spec (si/spec->root-sym k)]
+    (-> root-spec
+        (pull-nilable)
+        (sym->coercer)
+        (cond-> (nilable-spec? root-spec)
+                (comp parse-nil)))))
 
 (defn coerce-fn [k]
   "Get the coercing function from a given key. First it tries to lookup the coercion

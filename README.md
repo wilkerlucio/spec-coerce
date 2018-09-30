@@ -34,6 +34,12 @@ Learn by example:
 (s/def ::extended (s/and ::odd-number #(> % 10)))
 (sc/coerce ::extended "11") ; => 11
 
+; Nilables are considered
+(s/def ::nilable (s/nilable ::number))
+(sc/coerce ::nilable "42") ; => 42
+(sc/coerce ::nilable "nil") ; => nil
+(sc/coerce ::nilable "foo") ; => "foo"
+
 ; If you wanna play around or use a specific coercion, you can pass the predicate symbol directly
 (sc/coerce `int? "40") ; => 40
 

@@ -2,16 +2,16 @@
   #?(:cljs (:require-macros [cljs.test :refer [deftest testing is are run-tests]]))
   (:require
     #?(:clj [clojure.test :refer [deftest testing is are]])
-            [clojure.spec.alpha :as s]
-            [clojure.string :as str]
-            [clojure.test.check :as tc]
-            [clojure.test.check.generators]
-            [clojure.test.check.properties :as prop]
-            [clojure.spec.test.alpha :as st]
+    [clojure.spec.alpha :as s]
+    [clojure.string :as str]
+    [clojure.test.check :as tc]
+    [clojure.test.check.generators]
+    [clojure.test.check.properties :as prop]
+    [clojure.spec.test.alpha :as st]
     #?(:clj
-            [clojure.test.check.clojure-test :refer [defspec]])
+       [clojure.test.check.clojure-test :refer [defspec]])
     #?(:cljs [clojure.test.check.clojure-test :refer-macros [defspec]])
-            [spec-coerce.core :as sc])
+    [spec-coerce.core :as sc])
   #?(:clj
      (:import (java.net URI))))
 
@@ -43,7 +43,8 @@
     (is (= (sc/coerce ::not-defined "123") "123")))
 
   (testing "go over nilables"
-    (is (= (sc/coerce ::infer-nilable "123") 123))))
+    (is (= (sc/coerce ::infer-nilable "123") 123))
+    (is (= (sc/coerce ::infer-nilable "nil") nil))))
 
 (deftest test-coerce!
   (is (= (sc/coerce! ::infer-int "123") 123))
@@ -127,23 +128,23 @@
                 (prop/for-all [v gen]
                   (s/valid? sp (sc/coerce s (-> (pr-str v)
                                                 (str/replace #"^#[^\"]+\"|\"]?$"
-                                                             ""))))))]
+                                                  ""))))))]
       (if-not (= true (:result res))
         (throw (ex-info (str "Error coercing " s)
-                        {:symbol s
-                         :result res}))))))
+                 {:symbol s
+                  :result res}))))))
 
 #?(:clj (deftest test-coerce-inst
           ;; use .getTime to avoid java.sql.Timestamp/java.util.Date differences
           ;; we don't check s/valid? here, just that the date/time roundtrips
           (are [input output] (= (.getTime (sc/coerce `inst? input))
                                  (.getTime output))
-            "9/28/2018 22:06" #inst "2018-09-28T22:06"
-            (str "Fri Sep 28 22:06:52 "
-                 (.getID (java.util.TimeZone/getDefault))
-                 " 2018")     #inst "2018-09-28T22:06:52"
-            "2018-09-28"      #inst "2018-09-28"
-            "9/28/2018"       #inst "2018-09-28")))
+                              "9/28/2018 22:06" #inst "2018-09-28T22:06"
+                              (str "Fri Sep 28 22:06:52 "
+                                (.getID (java.util.TimeZone/getDefault))
+                                " 2018") #inst "2018-09-28T22:06:52"
+                              "2018-09-28" #inst "2018-09-28"
+                              "9/28/2018" #inst "2018-09-28")))
 
 (deftest test-coerce-inference-test
   (are [keyword input output] (= (sc/coerce keyword input) output)
@@ -167,29 +168,29 @@
                                ::not-defined   "bla"
                                :unqualified    "12"
                                :sub            {::infer-int "42"}}
-                              {::sc/overrides {::not-defined `keyword?
-                                               :unqualified  ::infer-int}})
+           {::sc/overrides {::not-defined `keyword?
+                            :unqualified  ::infer-int}})
          {::some-coercion 321
           ::not-defined   :bla
           :unqualified    12
           :sub            {::infer-int 42}}))
   (is (= (sc/coerce-structure {::or-example "321"}
-                              {::sc/op sc/conform})
+           {::sc/op sc/conform})
          {::or-example [:int 321]})))
 
 (s/def ::bool boolean?)
 (s/def ::simple-keys (s/keys :req [::infer-int]
-                             :opt [::bool]))
+                       :opt [::bool]))
 (s/def ::nested-keys (s/keys :req [::infer-form ::simple-keys]
-                             :req-un [::bool]))
+                       :req-un [::bool]))
 
 (deftest test-coerce-keys
   (is (= {::infer-int 123}
          (sc/coerce ::simple-keys {::infer-int "123"})))
-  (is (= {::infer-form [1 2 3]
-          ::simple-keys   {::infer-int 456
-                           ::bool      true}
-          :bool true}
+  (is (= {::infer-form  [1 2 3]
+          ::simple-keys {::infer-int 456
+                         ::bool      true}
+          :bool         true}
          (sc/coerce ::nested-keys {::infer-form  ["1" "2" "3"]
                                    ::simple-keys {::infer-int "456"
                                                   ::bool      "true"}

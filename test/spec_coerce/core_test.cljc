@@ -21,6 +21,7 @@
 (s/def ::infer-and-spec (s/and int? #(> % 10)))
 (s/def ::infer-and-spec-indirect (s/and ::infer-int #(> % 10)))
 (s/def ::infer-form (s/coll-of int?))
+(s/def ::infer-nilable (s/nilable int?))
 
 #?(:clj (s/def ::infer-decimal? decimal?))
 
@@ -37,7 +38,10 @@
     (is (= (sc/coerce ::some-coercion "123") 123)))
 
   (testing "it returns original value when it a coercion can't be found"
-    (is (= (sc/coerce ::not-defined "123") "123"))))
+    (is (= (sc/coerce ::not-defined "123") "123")))
+
+  (testing "go over nilables"
+    (is (= (sc/coerce ::infer-nilable "123") 123))))
 
 (deftest test-coerce-from-predicates
   (are [predicate input output] (= (sc/coerce predicate input) output)

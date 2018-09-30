@@ -4,6 +4,7 @@
 - `inst?` coercion now accepts a wider range of date & date/time patterns
 - `spec-coerce.core/*inst-format*` is dynamic and can be rebound if you need more formats
 - added `deps.edn` setup
+- support nilable
 
 ## [1.0.0-alpha6]
 - Support `s/keys`

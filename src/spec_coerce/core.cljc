@@ -221,9 +221,16 @@
   [form]
   (keys-parser form))
 
+(defn pull-nilable [k]
+  (if (and (seq? k)
+           (= `s/nilable (first k)))
+    (second k)
+    k))
+
 (defn infer-coercion [k]
   "Infer a coercer function from a given spec."
   (-> (si/spec->root-sym k)
+      (pull-nilable)
       (sym->coercer)))
 
 (defn coerce-fn [k]

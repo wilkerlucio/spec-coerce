@@ -5,6 +5,9 @@
 - `spec-coerce.core/*inst-format*` is dynamic and can be rebound if you need more formats
 - added `deps.edn` setup
 - support nilable
+- add `sc/coerce!`
+- add `sc/conform`
+- `sc/coerce-structure` supports `::sc/op` argument to use custom processor (eg: the new `sc/coerce!` or `sc/conform`)
 
 ## [1.0.0-alpha6]
 - Support `s/keys`

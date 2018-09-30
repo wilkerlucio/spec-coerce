@@ -33,6 +33,8 @@
 (s/def ::second-layer ::first-layer)
 (s/def ::second-layer-and (s/and ::first-layer #(> % 10)))
 
+(s/def ::or-example (s/or :int int? :double double? :bool boolean?))
+
 (deftest test-coerce-from-registry
   (testing "it uses the registry to coerce a key"
     (is (= (sc/coerce ::some-coercion "123") 123)))
@@ -42,6 +44,13 @@
 
   (testing "go over nilables"
     (is (= (sc/coerce ::infer-nilable "123") 123))))
+
+(deftest test-coerce!
+  (is (= (sc/coerce! ::infer-int "123") 123))
+  (is (thrown-with-msg? #?(:clj clojure.lang.ExceptionInfo :cljs js/Error) #"Failed to coerce value" (sc/coerce! ::infer-int "abc"))))
+
+(deftest test-conform
+  (is (= (sc/conform ::or-example "true") [:bool true])))
 
 (deftest test-coerce-from-predicates
   (are [predicate input output] (= (sc/coerce predicate input) output)
@@ -163,7 +172,10 @@
          {::some-coercion 321
           ::not-defined   :bla
           :unqualified    12
-          :sub            {::infer-int 42}})))
+          :sub            {::infer-int 42}}))
+  (is (= (sc/coerce-structure {::or-example "321"}
+                              {::sc/op sc/conform})
+         {::or-example [:int 321]})))
 
 (s/def ::bool boolean?)
 (s/def ::simple-keys (s/keys :req [::infer-int]

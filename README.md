@@ -55,8 +55,8 @@ Learn by example:
                       ::not-defined "bla"
                       :unqualified  "12"
                       :sub          {::odd-number "45"}}
-                      {::sc/overrides {::not-defined `keyword?
-                                       :unqualified  ::number}})
+                     {::sc/overrides {::not-defined `keyword?
+                                      :unqualified  ::number}})
 ; => {::number      42
 ;     ::not-defined :bla
 ;     :unqualified  12
@@ -133,6 +133,18 @@ Examples from predicate to coerced value:
 (sc/coerce `uri? "http://site.com") ; => (URI. "http://site.com")
 (sc/coerce `decimal? "42.42") ; => 42.42M
 (sc/coerce `decimal? "42.42M") ; => 42.42M
+
+;; Throw exception when coercion fails
+(sc/coerce! `int? "abc") ; => throws (ex-info "Failed to coerce value" {:spec `int? :value "abc"})
+
+;; Conform the result after coerce
+(sc/conform `(s/or :int int? :bool boolean?) "40")          ; [:int 40]
+
+;; Throw on coerce structure
+(sc/coerce-structure {::number "42"} {::sc/op sc/coerce!})
+
+;; Conform on coerce structure
+(sc/coerce-structure {::number "42"} {::sc/op sc/conform})
 ```
 
 ## License

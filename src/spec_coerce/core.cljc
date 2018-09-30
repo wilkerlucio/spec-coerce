@@ -4,8 +4,8 @@
             [clojure.spec.alpha :as s]
             [clojure.walk :as walk]
             [clojure.string :as str]
-    #?(:clj
-            [clojure.instant]))
+            #?(:clj
+               [clojure.instant]))
   #?(:clj
      (:import (java.util Date TimeZone UUID)
               (java.net URI)
@@ -23,7 +23,7 @@
          :cljs (if (= "NaN" x)
                  js/NaN
                  (let [v (js/parseInt x)]
-                  (if (js/isNaN v) x v))))
+                   (if (js/isNaN v) x v))))
       (catch #?(:clj Exception :cljs :default) _
         x))
     x))
@@ -42,7 +42,7 @@
          :cljs (if (= "NaN" x)
                  js/NaN
                  (let [v (js/parseFloat x)]
-                  (if (js/isNaN v) x v))))
+                   (if (js/isNaN v) x v))))
       (catch #?(:clj Exception :cljs :default) _
         x))
     x))
@@ -71,19 +71,19 @@
          (let [zone (ZoneId/of (.getID (TimeZone/getDefault)))]
            (or (some #(try
                         (Date/from
-                         (.toInstant
-                          (.atZone
-                           (LocalDateTime/parse x (DateTimeFormatter/ofPattern %))
-                           zone)))
+                          (.toInstant
+                            (.atZone
+                              (LocalDateTime/parse x (DateTimeFormatter/ofPattern %))
+                              zone)))
                         (catch Exception _)) *inst-formats*)
-               (some #(try
-                        (Date/from
-                         (.toInstant
+             (some #(try
+                      (Date/from
+                        (.toInstant
                           (.atStartOfDay
-                           (LocalDate/parse x (DateTimeFormatter/ofPattern %))
-                           zone)))
-                        (catch Exception _)) *inst-formats*)
-               x))))))
+                            (LocalDate/parse x (DateTimeFormatter/ofPattern %))
+                            zone)))
+                      (catch Exception _)) *inst-formats*)
+             x))))))
 
 (defn parse-inst [x]
   (if (string? x)
@@ -213,8 +213,8 @@
       (with-meta
         (reduce-kv (fn [m k v]
                      (assoc m k (coerce (or (keys-mapping k) k) v)))
-                   {}
-                   x)
+          {}
+          x)
         (meta x)))))
 
 (defmethod sym->coercer `s/keys
@@ -249,6 +249,21 @@
     (coerce-fn x)
     x))
 
+(defn coerce!
+  "Like coerce, but will call s/assert on the result, making it throw an error if value
+  doesn't comply after coercion."
+  [k x]
+  (let [coerced (coerce k x)]
+    (if (s/valid? k coerced)
+      coerced
+      (throw (ex-info "Failed to coerce value" {:spec  k
+                                                :value x})))))
+
+(defn conform
+  "Like coerce, and will call s/conform on the result."
+  [k x]
+  (s/conform k (coerce k x)))
+
 (defn ^:skip-wiki def-impl [k coerce-fn]
   (assert (and (ident? k) (namespace k)) "k must be namespaced keyword")
   (swap! registry-ref assoc k coerce-fn)
@@ -273,12 +288,13 @@
 (defn coerce-structure
   "Recursively coerce map values on a structure."
   ([x] (coerce-structure x {}))
-  ([x {::keys [overrides]}]
-    (walk/prewalk (fn [x]
-                    (if (map? x)
-                      (with-meta (into {} (map (fn [[k v]]
-                                                 (let [coercion (get overrides k k)]
-                                                   [k (coerce coercion v)]))) x)
-                                 (meta x))
-                      x))
-                  x)))
+  ([x {::keys [overrides op]
+       :or    {op coerce}}]
+   (walk/prewalk (fn [x]
+                   (if (map? x)
+                     (with-meta (into {} (map (fn [[k v]]
+                                                (let [coercion (get overrides k k)]
+                                                  [k (op coercion v)]))) x)
+                       (meta x))
+                     x))
+     x)))

@@ -1,6 +1,6 @@
 # Change Log
 
-## [1.0.0-alpha7 in progress]
+## [1.0.0-alpha7]
 - `inst?` coercion now accepts a wider range of date & date/time patterns
 - `spec-coerce.core/*inst-format*` is dynamic and can be rebound if you need more formats
 - added `deps.edn` setup

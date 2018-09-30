@@ -7,8 +7,10 @@
     #?(:clj
             [clojure.instant]))
   #?(:clj
-     (:import (java.util UUID)
-              (java.net URI))))
+     (:import (java.util Date TimeZone UUID)
+              (java.net URI)
+              (java.time LocalDate LocalDateTime ZoneId)
+              (java.time.format DateTimeFormatter))))
 
 (declare coerce)
 
@@ -54,10 +56,39 @@
         x))
     x))
 
+#?(:clj (def ^:dynamic *inst-formats*
+          ["yyyy/M/d H:m:s" "yyyy/M/d H:m" "yyyy/M/d"
+           "M/d/yyyy H:m:s" "M/d/yyyy H:m" "M/d/yyyy"
+           "yyyy-M-d H:m:s" "yyyy-M-d H:m" "yyyy-M-d"
+           "M-d-yyyy H:m:s" "M-d-yyyy H:m" "M-d-yyyy"
+           "EEE MMM dd HH:mm:ss zzz yyyy"]))
+
+#?(:clj
+   (defn- flexible-parse-inst [x]
+     (try
+       (clojure.instant/read-instant-timestamp x)
+       (catch Exception _
+         (let [zone (ZoneId/of (.getID (TimeZone/getDefault)))]
+           (or (some #(try
+                        (Date/from
+                         (.toInstant
+                          (.atZone
+                           (LocalDateTime/parse x (DateTimeFormatter/ofPattern %))
+                           zone)))
+                        (catch Exception _)) *inst-formats*)
+               (some #(try
+                        (Date/from
+                         (.toInstant
+                          (.atStartOfDay
+                           (LocalDate/parse x (DateTimeFormatter/ofPattern %))
+                           zone)))
+                        (catch Exception _)) *inst-formats*)
+               x))))))
+
 (defn parse-inst [x]
   (if (string? x)
     (try
-      #?(:clj  (clojure.instant/read-instant-timestamp x)
+      #?(:clj  (flexible-parse-inst x)
          :cljs (js/Date. x))
       (catch #?(:clj Exception :cljs :default) _
         x))

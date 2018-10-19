@@ -1,5 +1,8 @@
 # Change Log
 
+## [1.0.0-alpha8]
+- Return original value when trying to `coerce!` on simple keywords
+
 ## [1.0.0-alpha7]
 - `inst?` coercion now accepts a wider range of date & date/time patterns
 - `spec-coerce.core/*inst-format*` is dynamic and can be rebound if you need more formats

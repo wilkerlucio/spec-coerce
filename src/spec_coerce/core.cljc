@@ -259,11 +259,13 @@
   "Like coerce, but will call s/assert on the result, making it throw an error if value
   doesn't comply after coercion."
   [k x]
-  (let [coerced (coerce k x)]
-    (if (s/valid? k coerced)
-      coerced
-      (throw (ex-info "Failed to coerce value" {:spec  k
-                                                :value x})))))
+  (if (simple-keyword? k)
+    x
+    (let [coerced (coerce k x)]
+      (if (s/valid? k coerced)
+        coerced
+        (throw (ex-info "Failed to coerce value" {:spec  k
+                                                  :value x}))))))
 
 (defn conform
   "Like coerce, and will call s/conform on the result."

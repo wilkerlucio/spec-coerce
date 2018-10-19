@@ -136,6 +136,7 @@ Examples from predicate to coerced value:
 
 ;; Throw exception when coercion fails
 (sc/coerce! `int? "abc") ; => throws (ex-info "Failed to coerce value" {:spec `int? :value "abc"})
+(sc/coerce! :simple-keyword "abc") ; => "abc", coerce! doesn't do anything on simple keywords
 
 ;; Conform the result after coerce
 (sc/conform `(s/or :int int? :bool boolean?) "40")          ; [:int 40]

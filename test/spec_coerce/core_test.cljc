@@ -156,7 +156,11 @@
     ::second-layer "41" 42
     ::second-layer-and "41" 42
 
-    #?@(:clj [::infer-decimal? "123.4" 123.4M])))
+    #?@(:clj [::infer-decimal? "123.4" 123.4M])
+    #?@(:clj [::infer-decimal? 123.4 123.4M])
+    #?@(:clj [::infer-decimal? 123.4M 123.4M])
+    #?@(:clj [::infer-decimal? "" ""])
+    #?@(:clj [::infer-decimal? [] []])))
 
 (deftest test-coerce-structure
   (is (= (sc/coerce-structure {::some-coercion "321"

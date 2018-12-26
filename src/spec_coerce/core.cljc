@@ -153,11 +153,11 @@
 
 #?(:clj
    (defn parse-decimal [x]
-     (if (string? x)
-       (if (str/ends-with? x "M")
+     (try
+       (if (and (string? x) (str/ends-with? x "M"))
          (bigdec (subs x 0 (dec (count x))))
          (bigdec x))
-       x)))
+       (catch Exception _ x))))
 
 #?(:clj
    (defn parse-uri [x]

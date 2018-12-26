@@ -1,5 +1,8 @@
 # Change Log
 
+## [1.0.0-alpha9]
+- Coerce to bigdecimal from other number types
+
 ## [1.0.0-alpha8]
 - Return original value when trying to `coerce!` on simple keywords
 

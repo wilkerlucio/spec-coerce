@@ -16,6 +16,14 @@
 
 (defonce ^:private registry-ref (atom {}))
 
+(def ^:dynamic *overrides*
+  "Allows overriding of specs in the registry within a local binding
+  context.
+
+  (binding [sc/*overrides* {::my-key my-coerce-fn}]
+    (sc/coerce ::my/spec data))"
+  {})
+
 (defn parse-long [x]
   (if (string? x)
     (try
@@ -243,7 +251,7 @@
   "Get the coercing function from a given key. First it tries to lookup the coercion
   on the registry, otherwise try to infer from the specs. In case nothing is found, identity function is returned."
   (or (when (qualified-keyword? k)
-        (si/registry-lookup @registry-ref k))
+        (si/registry-lookup (merge @registry-ref *overrides*) k))
       (infer-coercion k)))
 
 (defn coerce [k x]

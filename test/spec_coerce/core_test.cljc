@@ -200,3 +200,25 @@
                                    ::simple-keys {::infer-int "456"
                                                   ::bool      "true"}
                                    :bool         "true"}))))
+
+(s/def ::head double?)
+(s/def ::body int?)
+(s/def ::arm  int?)
+(s/def ::leg  double?)
+(s/def ::arms (s/coll-of ::arm))
+(s/def ::legs (s/coll-of ::leg))
+(s/def ::name string?)
+(s/def ::animal (s/keys :req    [::head ::body ::arms ::legs]
+                        :opt-un [::name ::id]))
+
+(deftest test-coerce-with-registry-overrides
+  (testing "it uses overrides when provided"
+    (is (= {::head 1 ::body 16 ::arms [4 4] ::legs [7 7] :name :john}
+           (binding [sc/*overrides* {::head (sc/sym->coercer `int?)
+                                     ::leg  (sc/sym->coercer `int?)
+                                     ::name (sc/sym->coercer `keyword?)}]
+             (sc/coerce ::animal {::head "1"
+                                  ::body "16"
+                                  ::arms ["4" "4"]
+                                  ::legs ["7" "7"]
+                                  :name "john"}))))))

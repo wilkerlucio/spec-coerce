@@ -1,5 +1,8 @@
 # Change Log
 
+## [1.0.0-alpha10]
+- Allow overriding coercers in the registry in a local context
+
 ## [1.0.0-alpha9]
 - Coerce to bigdecimal from other number types
 

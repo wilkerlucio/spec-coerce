@@ -216,7 +216,9 @@
 
 (defn- keys-parser
   [[_ & {:keys [req-un opt-un]}]]
-  (let [keys-mapping (into {} (map #(vector (keyword (name %)) %) (concat req-un opt-un)))]
+  (let [unnest (comp (filter keyword?)
+                     (map #(vector (keyword (name %)) %)))
+        keys-mapping (into {} unnest (flatten (concat req-un opt-un)))]
     (fn [x]
       (with-meta
         (reduce-kv (fn [m k v]

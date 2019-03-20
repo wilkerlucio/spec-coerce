@@ -222,3 +222,16 @@
                                   ::arms ["4" "4"]
                                   ::legs ["7" "7"]
                                   :name "john"}))))))
+
+(s/def ::foo int?)
+(s/def ::bar string?)
+(s/def ::qualified (s/keys :req [(or ::foo ::bar)]))
+(s/def ::unqualified (s/keys :req-un [(or ::foo ::bar)]))
+
+(deftest test-or-conditions-in-qualified-keys
+  (is (= (sc/coerce ::qualified {::foo "1" ::bar "hi"})
+         {::foo 1 ::bar "hi"})))
+
+(deftest test-or-conditions-in-unqualified-keys
+  (is (= (sc/coerce ::unqualified {:foo "1" :bar "hi"})
+         {:foo 1 :bar "hi"})))

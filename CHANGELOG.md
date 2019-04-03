@@ -1,5 +1,8 @@
 # Change Log
 
+## [1.0.0-alpha11]
+- Fix parsing of conditionals in unqualified keys
+
 ## [1.0.0-alpha10]
 - Allow overriding coercers in the registry in a local context
 

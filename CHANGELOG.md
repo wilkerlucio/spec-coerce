@@ -1,5 +1,8 @@
 # Change Log
 
+## [1.0.0-alpha12]
+- Fix coercion of lists getting out of order
+
 ## [1.0.0-alpha11]
 - Fix parsing of conditionals in unqualified keys
 

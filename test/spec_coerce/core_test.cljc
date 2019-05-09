@@ -153,6 +153,8 @@
     ::infer-and-spec "42" 42
     ::infer-and-spec-indirect "43" 43
     ::infer-form ["20" "43"] [20 43]
+    ::infer-form '("20" "43") '(20 43)
+    ::infer-form (map str (range 2)) '(0 1)
     ::second-layer "41" 42
     ::second-layer-and "41" 42
 

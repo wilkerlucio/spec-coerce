@@ -144,10 +144,16 @@
       x
       (partition 2 pairs))))
 
+(defn- map-seq
+  [fun x]
+  (if (vector? x)
+    (mapv fun x)
+    (map fun x)))
+
 (defn parse-coll-of [[_ pred & _]]
   (fn [x]
     (if (sequential? x)
-      (into (empty x) (map (partial coerce pred)) x)
+      (map-seq (partial coerce pred) x)
       x)))
 
 (defn parse-map-of [[_ kpred vpred & _]]

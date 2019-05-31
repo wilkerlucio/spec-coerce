@@ -35,6 +35,9 @@
 
 (s/def ::or-example (s/or :int int? :double double? :bool boolean?))
 
+(s/def ::nilable-int (s/nilable ::infer-int))
+(s/def ::nilable-pos-int (s/nilable (s/and ::infer-int pos?)))
+
 (deftest test-coerce-from-registry
   (testing "it uses the registry to coerce a key"
     (is (= (sc/coerce ::some-coercion "123") 123)))
@@ -44,7 +47,9 @@
 
   (testing "go over nilables"
     (is (= (sc/coerce ::infer-nilable "123") 123))
-    (is (= (sc/coerce ::infer-nilable "nil") nil))))
+    (is (= (sc/coerce ::infer-nilable "nil") nil))
+    (is (= (sc/coerce ::nilable-int "10") 10))
+    (is (= (sc/coerce ::nilable-pos-int "10") 10))))
 
 (deftest test-coerce!
   (is (= (sc/coerce! ::infer-int "123") 123))

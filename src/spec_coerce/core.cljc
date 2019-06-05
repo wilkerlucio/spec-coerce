@@ -249,11 +249,20 @@
 (defn infer-coercion [k]
   "Infer a coercer function from a given spec."
   (let [root-spec (si/spec->root-sym k)]
-    (-> root-spec
-        (pull-nilable)
-        (sym->coercer)
-        (cond-> (nilable-spec? root-spec)
-                (comp parse-nil)))))
+    (if (nilable-spec? root-spec)
+      (-> root-spec
+          pull-nilable
+          ;; pulling out nilable so we can get a real function
+          ;; to get a coercer
+          si/spec->root-sym
+          sym->coercer
+          (cond-> (nilable-spec? root-spec)
+                  (comp parse-nil)))
+      (-> root-spec
+          pull-nilable
+          sym->coercer
+          (cond-> (nilable-spec? root-spec)
+                  (comp parse-nil))))))
 
 (defn coerce-fn [k]
   "Get the coercing function from a given key. First it tries to lookup the coercion

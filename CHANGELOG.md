@@ -1,5 +1,8 @@
 # Change Log
 
+## [1.0.0-alpha13]
+- Fix coercion of nilables
+
 ## [1.0.0-alpha12]
 - Fix coercion of lists getting out of order
 

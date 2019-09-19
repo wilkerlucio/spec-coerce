@@ -187,6 +187,7 @@
       (first x)
       x)))
 
+(defmethod sym->coercer `string? [_] str)
 (defmethod sym->coercer `number? [_] parse-double)
 (defmethod sym->coercer `integer? [_] parse-long)
 (defmethod sym->coercer `int? [_] parse-long)

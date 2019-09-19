@@ -111,11 +111,12 @@
     x))
 
 (defn parse-keyword [x]
-  (if (string? x)
-    (if (str/starts-with? x ":")
-      (keyword (subs x 1))
-      (keyword x))
-    x))
+  (cond (string? x)
+        (if (str/starts-with? x ":")
+          (keyword (subs x 1))
+          (keyword x))
+        (symbol? x) (keyword x)
+        :else       x))
 
 (defn parse-symbol [x]
   (if (string? x)

@@ -185,15 +185,15 @@
 (defn type->sym [x]
   (cond (int? x)     `integer?
         (float? x)   `float?
-        (boolean? x) `boolean?
-        (ident? x)   `ident?
+        (boolean? x) `boolean?   ;; pointless but valid
+        ;;(symbol? x)  `symbol?  ;; doesn't work.
+        ;;(ident? x)   `ident?   ;; doesn't work.
         (string? x)  `string?
         (keyword? x) `keyword?
         (uuid? x)    `uuid?
-        (nil? x)     `nil?
-        (symbol? x)  `symbol?
+        (nil? x)     `nil?       ;; even more pointless but stil valid
 
-        #?(:clj (uri? x))     #?(:clj `uri?)
+        ;;#?(:clj (uri? x))     #?(:clj `uri?) ;; doesn't work.
         #?(:clj (decimal? x)) #?(:clj `decimal?)))
 
 (defmulti sym->coercer

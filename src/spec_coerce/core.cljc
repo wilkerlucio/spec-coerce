@@ -182,11 +182,25 @@
        (URI. x)
        x)))
 
+(defn type->sym [x]
+  (cond (int? x)     `integer?
+        (float? x)   `float?
+        (boolean? x) `boolean?
+        (ident? x)   `ident?
+        (string? x)  `string?
+        (keyword? x) `keyword?
+        (uuid? x)    `uuid?
+        (nil? x)     `nil?
+        (symbol? x)  `symbol?
+
+        #?(:clj (uri? x))     #?(:clj `uri?)
+        #?(:clj (decimal? x)) #?(:clj `decimal?)))
+
 (defmulti sym->coercer
   (fn [x]
-    (if (sequential? x)
-      (first x)
-      x)))
+    (cond (set? x)        (type->sym (first x))
+          (sequential? x) (first x)
+          :else           x)))
 
 (defmethod sym->coercer `string? [_] str)
 (defmethod sym->coercer `number? [_] parse-double)

@@ -264,23 +264,37 @@
     (second spec)
     spec))
 
+(defn spec-is-set? [root-spec]
+  "If the spec is given as a set, and every member of the set is the same type,
+  then we can infer a coercion from that shared type."
+  (let [infer-spec (pull-nilable root-spec)]
+    (and (set? infer-spec)
+         (->> infer-spec
+              (map type)
+              (apply =)))))
+
+(defn spec->coercion [root-spec]
+  (-> root-spec
+      pull-nilable
+      sym->coercer
+      (cond-> (nilable-spec? root-spec)
+        (comp parse-nil))))
+
+(defn nilable-spec->coercion [root-spec]
+  "Pulling out nilable so we can get a real function to get a coercer "
+  (-> root-spec
+      pull-nilable
+      si/spec->root-sym
+      sym->coercer
+      (cond-> (nilable-spec? root-spec)
+        (comp parse-nil))))
+
 (defn infer-coercion [k]
   "Infer a coercer function from a given spec."
   (let [root-spec (si/spec->root-sym k)]
-    (if (nilable-spec? root-spec)
-      (-> root-spec
-          pull-nilable
-          ;; pulling out nilable so we can get a real function
-          ;; to get a coercer
-          si/spec->root-sym
-          sym->coercer
-          (cond-> (nilable-spec? root-spec)
-                  (comp parse-nil)))
-      (-> root-spec
-          pull-nilable
-          sym->coercer
-          (cond-> (nilable-spec? root-spec)
-                  (comp parse-nil))))))
+    (cond (spec-is-set? root-spec)  (spec->coercion root-spec)
+          (nilable-spec? root-spec) (nilable-spec->coercion root-spec)
+          :else                     (spec->coercion root-spec))))
 
 (defn coerce-fn [k]
   "Get the coercing function from a given key. First it tries to lookup the coercion

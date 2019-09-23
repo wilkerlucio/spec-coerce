@@ -196,11 +196,21 @@
         ;;#?(:clj (uri? x))     #?(:clj `uri?) ;; doesn't work.
         #?(:clj (decimal? x)) #?(:clj `decimal?)))
 
+(defn spec-is-set? [x]
+  "If the spec is given as a set, and every member of the set is the same type,
+  then we can infer a coercion from that shared type."
+  (let [infer-spec (try (eval x)
+                        (catch Exception e x))]
+    (and (set? infer-spec)
+         (->> infer-spec
+              (map type)
+              (apply =)))))
+
 (defmulti sym->coercer
   (fn [x]
-    (cond (set? x)        (type->sym (first x))
-          (sequential? x) (first x)
-          :else           x)))
+    (cond (spec-is-set? x) (-> x eval first type->sym)
+          (sequential? x)  (first x)
+          :else            x)))
 
 (defmethod sym->coercer `string? [_] str)
 (defmethod sym->coercer `number? [_] parse-double)
@@ -264,15 +274,6 @@
     (second spec)
     spec))
 
-(defn spec-is-set? [root-spec]
-  "If the spec is given as a set, and every member of the set is the same type,
-  then we can infer a coercion from that shared type."
-  (let [infer-spec (pull-nilable root-spec)]
-    (and (set? infer-spec)
-         (->> infer-spec
-              (map type)
-              (apply =)))))
-
 (defn spec->coercion [root-spec]
   (-> root-spec
       pull-nilable
@@ -292,8 +293,7 @@
 (defn infer-coercion [k]
   "Infer a coercer function from a given spec."
   (let [root-spec (si/spec->root-sym k)]
-    (cond (spec-is-set? root-spec)  (spec->coercion root-spec)
-          (nilable-spec? root-spec) (nilable-spec->coercion root-spec)
+    (cond (nilable-spec? root-spec) (nilable-spec->coercion root-spec)
           :else                     (spec->coercion root-spec))))
 
 (defn coerce-fn [k]

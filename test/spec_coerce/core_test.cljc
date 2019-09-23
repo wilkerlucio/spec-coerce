@@ -52,6 +52,19 @@
                            (URI. "http://site.org")}))
 #?(:clj (s/def ::decimal-set #{42.42M 1.1M}))
 
+(def enum-set #{:a :b})
+(s/def ::referenced-set enum-set)
+
+(def enum-map {:foo "bar"
+               :baz "qux"})
+(s/def ::calculated-set (->> enum-map keys (into #{})))
+
+(s/def ::nilable-referenced-set (s/nilable enum-set))
+(s/def ::nilable-calculated-set (s/nilable (->> enum-map keys (into #{}))))
+
+(s/def ::nilable-referenced-set-kw (s/nilable ::referenced-set))
+(s/def ::nilable-calculated-set-kw (s/nilable ::calculated-set))
+
 (deftest test-coerce-from-registry
   (testing "it uses the registry to coerce a key"
     (is (= (sc/coerce ::some-coercion "123") 123)))
@@ -75,7 +88,13 @@
     (is (= (sc/coerce ::uuid-set "d6e73cc5-95bc-496a-951c-87f11af0d839") #uuid "d6e73cc5-95bc-496a-951c-87f11af0d839"))
     (is (= (sc/coerce ::nil-set "nil") nil))
     ;;#?(:clj (is (= (sc/coerce ::uri-set "http://site.com") (URI. "http://site.com"))))
-    #?(:clj (is (= (sc/coerce ::decimal-set "42.42M") 42.42M)))))
+    #?(:clj (is (= (sc/coerce ::decimal-set "42.42M") 42.42M)))
+    (is (= (sc/coerce ::referenced-set ":a") :a))
+    (is (= (sc/coerce ::calculated-set ":foo") :foo))
+    (is (= (sc/coerce ::nilable-referenced-set ":a") :a))
+    (is (= (sc/coerce ::nilable-calculated-set ":foo") :foo))
+    (is (= (sc/coerce ::nilable-referenced-set-kw ":a") :a))
+    (is (= (sc/coerce ::nilable-calculated-set-kw ":foo") :foo))))
 
 (deftest test-coerce!
   (is (= (sc/coerce! ::infer-int "123") 123))

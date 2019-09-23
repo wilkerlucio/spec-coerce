@@ -65,6 +65,9 @@
 (s/def ::nilable-referenced-set-kw (s/nilable ::referenced-set))
 (s/def ::nilable-calculated-set-kw (s/nilable ::calculated-set))
 
+(s/def ::unevaluatable-spec (letfn [(pred [x] (string? x))]
+                              (s/spec pred)))
+
 (deftest test-coerce-from-registry
   (testing "it uses the registry to coerce a key"
     (is (= (sc/coerce ::some-coercion "123") 123)))
@@ -94,7 +97,9 @@
     (is (= (sc/coerce ::nilable-referenced-set ":a") :a))
     (is (= (sc/coerce ::nilable-calculated-set ":foo") :foo))
     (is (= (sc/coerce ::nilable-referenced-set-kw ":a") :a))
-    (is (= (sc/coerce ::nilable-calculated-set-kw ":foo") :foo))))
+    (is (= (sc/coerce ::nilable-calculated-set-kw ":foo") :foo))
+
+    (is (= (sc/coerce ::unevaluatable-spec "just a string") "just a string"))))
 
 (deftest test-coerce!
   (is (= (sc/coerce! ::infer-int "123") 123))

@@ -25,35 +25,37 @@
   {})
 
 (defn parse-long [x]
-  (if (string? x)
-    (try
-      #?(:clj  (Long/parseLong x)
-         :cljs (if (= "NaN" x)
-                 js/NaN
-                 (let [v (js/parseInt x)]
-                   (if (js/isNaN v) x v))))
-      (catch #?(:clj Exception :cljs :default) _
-        x))
-    x))
+  (cond  (string? x)
+         (try
+           #?(:clj  (Long/parseLong x)
+              :cljs (if (= "NaN" x)
+                      js/NaN
+                      (let [v (js/parseInt x)]
+                        (if (js/isNaN v) x v))))
+           (catch #?(:clj Exception :cljs :default) _
+             x))
+         (number? x) (long x)
+         :else       x))
 
 (defn parse-double [x]
-  (if (string? x)
-    (try
-      #?(:clj  (case x
-                 "##-Inf" ##-Inf
-                 "##Inf" ##Inf
-                 "##NaN" ##NaN
-                 "NaN" ##NaN
-                 "Infinity" ##Inf
-                 "-Infinity" ##-Inf
-                 (Double/parseDouble x))
-         :cljs (if (= "NaN" x)
-                 js/NaN
-                 (let [v (js/parseFloat x)]
-                   (if (js/isNaN v) x v))))
-      (catch #?(:clj Exception :cljs :default) _
-        x))
-    x))
+  (cond (string? x)
+        (try
+          #?(:clj  (case x
+                     "##-Inf"    ##-Inf
+                     "##Inf"     ##Inf
+                     "##NaN"     ##NaN
+                     "NaN"       ##NaN
+                     "Infinity"  ##Inf
+                     "-Infinity" ##-Inf
+                     (Double/parseDouble x))
+             :cljs (if (= "NaN" x)
+                     js/NaN
+                     (let [v (js/parseFloat x)]
+                       (if (js/isNaN v) x v))))
+          (catch #?(:clj Exception :cljs :default) _
+            x))
+        (number? x) (double x)
+        :else       x))
 
 (defn parse-uuid [x]
   (if (string? x)
@@ -109,11 +111,12 @@
     x))
 
 (defn parse-keyword [x]
-  (if (string? x)
-    (if (str/starts-with? x ":")
-      (keyword (subs x 1))
-      (keyword x))
-    x))
+  (cond (string? x)
+        (if (str/starts-with? x ":")
+          (keyword (subs x 1))
+          (keyword x))
+        (symbol? x) (keyword x)
+        :else       x))
 
 (defn parse-symbol [x]
   (if (string? x)
@@ -185,6 +188,7 @@
       (first x)
       x)))
 
+(defmethod sym->coercer `string? [_] str)
 (defmethod sym->coercer `number? [_] parse-double)
 (defmethod sym->coercer `integer? [_] parse-long)
 (defmethod sym->coercer `int? [_] parse-long)

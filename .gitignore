@@ -11,3 +11,4 @@ pom.xml.asc
 .hg/
 *.iml
 .DS_Store
+.cpcache/

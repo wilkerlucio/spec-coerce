@@ -65,6 +65,8 @@
     `number? "foo" "foo"
     `integer? "42" 42
     `int? "42" 42
+    `int? 42.0 42
+    `int? 42.5 42
     `pos-int? "42" 42
     `neg-int? "-42" -42
     `nat-int? "10" 10
@@ -72,6 +74,11 @@
     `odd? "9" 9
     `float? "42.42" 42.42
     `double? "42.42" 42.42
+    `double? 42.42 42.42
+    `double? 42 42.0
+    `string? 42 "42"
+    `string? :a ":a"
+    `string? :foo/bar ":foo/bar"
     `boolean? "true" true
     `boolean? "false" false
     `ident? ":foo/bar" :foo/bar
@@ -80,6 +87,7 @@
     `qualified-ident? ":foo/baz" :foo/baz
     `keyword? "keyword" :keyword
     `keyword? ":keyword" :keyword
+    `keyword? 'symbol :symbol
     `simple-keyword? ":simple-keyword" :simple-keyword
     `qualified-keyword? ":qualified/keyword" :qualified/keyword
     `symbol? "sym" 'sym

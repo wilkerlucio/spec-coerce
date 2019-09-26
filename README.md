@@ -34,6 +34,10 @@ Learn by example:
 (sc/coerce ::nilable "nil") ; => nil
 (sc/coerce ::nilable "foo") ; => "foo"
 
+; The coercion can even be automatically inferred from specs given explicitly as sets of a homogeneous type
+(s/def ::enum #{:a :b :c})
+(sc/coerce ::enum ":a") ; => :a
+
 ; If you wanna play around or use a specific coercion, you can pass the predicate symbol directly
 (sc/coerce `int? "40") ; => 40
 

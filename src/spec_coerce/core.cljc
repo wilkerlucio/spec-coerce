@@ -196,7 +196,7 @@
         ;;#?(:clj (uri? x))     #?(:clj `uri?) ;; doesn't work.
         #?(:clj (decimal? x)) #?(:clj `decimal?)))
 
-(defn spec-is-set? [x]
+(defn spec-is-homogeneous-set? [x]
   "If the spec is given as a set, and every member of the set is the same type,
   then we can infer a coercion from that shared type."
   (and (set? x)
@@ -206,7 +206,7 @@
 
 (defmulti sym->coercer
   (fn [x]
-    (cond (spec-is-set? x) (-> x first type->sym)
+    (cond (spec-is-homogeneous-set? x) (-> x first type->sym)
           (sequential? x)  (first x)
           :else            x)))
 

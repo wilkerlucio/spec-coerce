@@ -25,35 +25,37 @@
   {})
 
 (defn parse-long [x]
-  (if (string? x)
-    (try
-      #?(:clj  (Long/parseLong x)
-         :cljs (if (= "NaN" x)
-                 js/NaN
-                 (let [v (js/parseInt x)]
-                   (if (js/isNaN v) x v))))
-      (catch #?(:clj Exception :cljs :default) _
-        x))
-    x))
+  (cond  (string? x)
+         (try
+           #?(:clj  (Long/parseLong x)
+              :cljs (if (= "NaN" x)
+                      js/NaN
+                      (let [v (js/parseInt x)]
+                        (if (js/isNaN v) x v))))
+           (catch #?(:clj Exception :cljs :default) _
+             x))
+         (number? x) (long x)
+         :else       x))
 
 (defn parse-double [x]
-  (if (string? x)
-    (try
-      #?(:clj  (case x
-                 "##-Inf" ##-Inf
-                 "##Inf" ##Inf
-                 "##NaN" ##NaN
-                 "NaN" ##NaN
-                 "Infinity" ##Inf
-                 "-Infinity" ##-Inf
-                 (Double/parseDouble x))
-         :cljs (if (= "NaN" x)
-                 js/NaN
-                 (let [v (js/parseFloat x)]
-                   (if (js/isNaN v) x v))))
-      (catch #?(:clj Exception :cljs :default) _
-        x))
-    x))
+  (cond (string? x)
+        (try
+          #?(:clj  (case x
+                     "##-Inf"    ##-Inf
+                     "##Inf"     ##Inf
+                     "##NaN"     ##NaN
+                     "NaN"       ##NaN
+                     "Infinity"  ##Inf
+                     "-Infinity" ##-Inf
+                     (Double/parseDouble x))
+             :cljs (if (= "NaN" x)
+                     js/NaN
+                     (let [v (js/parseFloat x)]
+                       (if (js/isNaN v) x v))))
+          (catch #?(:clj Exception :cljs :default) _
+            x))
+        (number? x) (double x)
+        :else       x))
 
 (defn parse-uuid [x]
   (if (string? x)
@@ -109,11 +111,12 @@
     x))
 
 (defn parse-keyword [x]
-  (if (string? x)
-    (if (str/starts-with? x ":")
-      (keyword (subs x 1))
-      (keyword x))
-    x))
+  (cond (string? x)
+        (if (str/starts-with? x ":")
+          (keyword (subs x 1))
+          (keyword x))
+        (symbol? x) (keyword x)
+        :else       x))
 
 (defn parse-symbol [x]
   (if (string? x)
@@ -179,12 +182,35 @@
        (URI. x)
        x)))
 
+(defn type->sym [x]
+  (cond (int? x)     `integer?
+        (float? x)   `float?
+        (boolean? x) `boolean?   ;; pointless but valid
+        ;;(symbol? x)  `symbol?  ;; doesn't work.
+        ;;(ident? x)   `ident?   ;; doesn't work.
+        (string? x)  `string?
+        (keyword? x) `keyword?
+        (uuid? x)    `uuid?
+        (nil? x)     `nil?       ;; even more pointless but stil valid
+
+        ;;#?(:clj (uri? x))     #?(:clj `uri?) ;; doesn't work.
+        #?(:clj (decimal? x)) #?(:clj `decimal?)))
+
+(defn spec-is-homogeneous-set? [x]
+  "If the spec is given as a set, and every member of the set is the same type,
+  then we can infer a coercion from that shared type."
+  (and (set? x)
+       (->> x
+            (map type)
+            (apply =))))
+
 (defmulti sym->coercer
   (fn [x]
-    (if (sequential? x)
-      (first x)
-      x)))
+    (cond (spec-is-homogeneous-set? x) (-> x first type->sym)
+          (sequential? x)  (first x)
+          :else            x)))
 
+(defmethod sym->coercer `string? [_] str)
 (defmethod sym->coercer `number? [_] parse-double)
 (defmethod sym->coercer `integer? [_] parse-long)
 (defmethod sym->coercer `int? [_] parse-long)
@@ -246,23 +272,27 @@
     (second spec)
     spec))
 
+(defn spec->coercion [root-spec]
+  (-> root-spec
+      pull-nilable
+      sym->coercer
+      (cond-> (nilable-spec? root-spec)
+        (comp parse-nil))))
+
+(defn nilable-spec->coercion [root-spec]
+  "Pulling out nilable so we can get a real function to get a coercer "
+  (-> root-spec
+      pull-nilable
+      si/spec->root-sym
+      sym->coercer
+      (cond-> (nilable-spec? root-spec)
+        (comp parse-nil))))
+
 (defn infer-coercion [k]
   "Infer a coercer function from a given spec."
   (let [root-spec (si/spec->root-sym k)]
-    (if (nilable-spec? root-spec)
-      (-> root-spec
-          pull-nilable
-          ;; pulling out nilable so we can get a real function
-          ;; to get a coercer
-          si/spec->root-sym
-          sym->coercer
-          (cond-> (nilable-spec? root-spec)
-                  (comp parse-nil)))
-      (-> root-spec
-          pull-nilable
-          sym->coercer
-          (cond-> (nilable-spec? root-spec)
-                  (comp parse-nil))))))
+    (cond (nilable-spec? root-spec) (nilable-spec->coercion root-spec)
+          :else                     (spec->coercion root-spec))))
 
 (defn coerce-fn [k]
   "Get the coercing function from a given key. First it tries to lookup the coercion

@@ -38,6 +38,36 @@
 (s/def ::nilable-int (s/nilable ::infer-int))
 (s/def ::nilable-pos-int (s/nilable (s/and ::infer-int pos?)))
 
+(s/def ::int-set #{1 2})
+(s/def ::float-set #{1.2 2.1})
+(s/def ::boolean-set #{true})
+(s/def ::symbol-set #{'foo/bar 'bar/foo})
+(s/def ::ident-set #{'foo/bar :bar/foo})
+(s/def ::string-set #{"hey" "there"})
+(s/def ::keyword-set #{:a :b})
+(s/def ::uuid-set #{#uuid "d6e73cc5-95bc-496a-951c-87f11af0d839"
+                    #uuid "a6e73cc5-95bc-496a-951c-87f11af0d839"})
+(s/def ::nil-set #{nil})
+#?(:clj (s/def ::uri-set #{(URI. "http://site.com")
+                           (URI. "http://site.org")}))
+#?(:clj (s/def ::decimal-set #{42.42M 1.1M}))
+
+(def enum-set #{:a :b})
+(s/def ::referenced-set enum-set)
+
+(def enum-map {:foo "bar"
+               :baz "qux"})
+(s/def ::calculated-set (->> enum-map keys (into #{})))
+
+(s/def ::nilable-referenced-set (s/nilable enum-set))
+(s/def ::nilable-calculated-set (s/nilable (->> enum-map keys (into #{}))))
+
+(s/def ::nilable-referenced-set-kw (s/nilable ::referenced-set))
+(s/def ::nilable-calculated-set-kw (s/nilable ::calculated-set))
+
+(s/def ::unevaluatable-spec (letfn [(pred [x] (string? x))]
+                              (s/spec pred)))
+
 (deftest test-coerce-from-registry
   (testing "it uses the registry to coerce a key"
     (is (= (sc/coerce ::some-coercion "123") 123)))
@@ -49,7 +79,30 @@
     (is (= (sc/coerce ::infer-nilable "123") 123))
     (is (= (sc/coerce ::infer-nilable "nil") nil))
     (is (= (sc/coerce ::nilable-int "10") 10))
-    (is (= (sc/coerce ::nilable-pos-int "10") 10))))
+    (is (= (sc/coerce ::nilable-pos-int "10") 10)))
+
+  (testing "specs given as sets"
+    (is (= (sc/coerce ::int-set "1") 1))
+    (is (= (sc/coerce ::float-set "1.2") 1.2))
+    (is (= (sc/coerce ::boolean-set "true") true))
+    ;;(is (= (sc/coerce ::symbol-set "foo/bar") 'foo/bar))
+    (is (= (sc/coerce ::string-set "hey") "hey"))
+    (is (= (sc/coerce ::keyword-set ":b") :b))
+    (is (= (sc/coerce ::uuid-set "d6e73cc5-95bc-496a-951c-87f11af0d839") #uuid "d6e73cc5-95bc-496a-951c-87f11af0d839"))
+    (is (= (sc/coerce ::nil-set "nil") nil))
+    ;;#?(:clj (is (= (sc/coerce ::uri-set "http://site.com") (URI. "http://site.com"))))
+    #?(:clj (is (= (sc/coerce ::decimal-set "42.42M") 42.42M)))
+
+    ;; The following tests can't work without using `eval`. We will avoid this
+    ;; and hope that spec2 will give us a better way.
+    ;;(is (= (sc/coerce ::referenced-set ":a") :a))
+    ;;(is (= (sc/coerce ::calculated-set ":foo") :foo))
+    ;;(is (= (sc/coerce ::nilable-referenced-set ":a") :a))
+    ;;(is (= (sc/coerce ::nilable-calculated-set ":foo") :foo))
+    ;;(is (= (sc/coerce ::nilable-referenced-set-kw ":a") :a))
+    ;;(is (= (sc/coerce ::nilable-calculated-set-kw ":foo") :foo))
+
+    (is (= (sc/coerce ::unevaluatable-spec "just a string") "just a string"))))
 
 (deftest test-coerce!
   (is (= (sc/coerce! ::infer-int "123") 123))
@@ -65,6 +118,8 @@
     `number? "foo" "foo"
     `integer? "42" 42
     `int? "42" 42
+    `int? 42.0 42
+    `int? 42.5 42
     `pos-int? "42" 42
     `neg-int? "-42" -42
     `nat-int? "10" 10
@@ -72,6 +127,11 @@
     `odd? "9" 9
     `float? "42.42" 42.42
     `double? "42.42" 42.42
+    `double? 42.42 42.42
+    `double? 42 42.0
+    `string? 42 "42"
+    `string? :a ":a"
+    `string? :foo/bar ":foo/bar"
     `boolean? "true" true
     `boolean? "false" false
     `ident? ":foo/bar" :foo/bar
@@ -80,6 +140,7 @@
     `qualified-ident? ":foo/baz" :foo/baz
     `keyword? "keyword" :keyword
     `keyword? ":keyword" :keyword
+    `keyword? 'symbol :symbol
     `simple-keyword? ":simple-keyword" :simple-keyword
     `qualified-keyword? ":qualified/keyword" :qualified/keyword
     `symbol? "sym" 'sym

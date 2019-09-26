@@ -92,12 +92,15 @@
     (is (= (sc/coerce ::nil-set "nil") nil))
     ;;#?(:clj (is (= (sc/coerce ::uri-set "http://site.com") (URI. "http://site.com"))))
     #?(:clj (is (= (sc/coerce ::decimal-set "42.42M") 42.42M)))
-    (is (= (sc/coerce ::referenced-set ":a") :a))
-    (is (= (sc/coerce ::calculated-set ":foo") :foo))
-    (is (= (sc/coerce ::nilable-referenced-set ":a") :a))
-    (is (= (sc/coerce ::nilable-calculated-set ":foo") :foo))
-    (is (= (sc/coerce ::nilable-referenced-set-kw ":a") :a))
-    (is (= (sc/coerce ::nilable-calculated-set-kw ":foo") :foo))
+
+    ;; The following tests can't work without using `eval`. We will avoid this
+    ;; and hope that spec2 will give us a better way.
+    ;;(is (= (sc/coerce ::referenced-set ":a") :a))
+    ;;(is (= (sc/coerce ::calculated-set ":foo") :foo))
+    ;;(is (= (sc/coerce ::nilable-referenced-set ":a") :a))
+    ;;(is (= (sc/coerce ::nilable-calculated-set ":foo") :foo))
+    ;;(is (= (sc/coerce ::nilable-referenced-set-kw ":a") :a))
+    ;;(is (= (sc/coerce ::nilable-calculated-set-kw ":foo") :foo))
 
     (is (= (sc/coerce ::unevaluatable-spec "just a string") "just a string"))))
 

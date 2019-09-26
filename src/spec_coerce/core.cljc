@@ -199,16 +199,14 @@
 (defn spec-is-set? [x]
   "If the spec is given as a set, and every member of the set is the same type,
   then we can infer a coercion from that shared type."
-  (let [infer-spec (try (eval x)
-                        (catch Exception e x))]
-    (and (set? infer-spec)
-         (->> infer-spec
-              (map type)
-              (apply =)))))
+  (and (set? x)
+       (->> x
+            (map type)
+            (apply =))))
 
 (defmulti sym->coercer
   (fn [x]
-    (cond (spec-is-set? x) (-> x eval first type->sym)
+    (cond (spec-is-set? x) (-> x first type->sym)
           (sequential? x)  (first x)
           :else            x)))
 

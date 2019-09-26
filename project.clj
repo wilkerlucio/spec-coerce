@@ -1,4 +1,4 @@
-(defproject spec-coerce "1.0.0-alpha13"
+(defproject spec-coerce "1.0.0-alpha14"
   :description "Coerce from specs"
   :url "http://example.com/FIXME"
   :license {:name "Eclipse Public License"

@@ -1,5 +1,9 @@
 # Change Log
 
+## [1.0.0-alpha14]
+- Handle number->number, any->string, and symbol->keyword
+- Infer coercion from specs given as sets
+
 ## [1.0.0-alpha13]
 - Fix coercion of nilables
 

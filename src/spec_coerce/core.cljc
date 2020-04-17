@@ -263,6 +263,25 @@
   [form]
   (keys-parser form))
 
+(defn parse-merge
+  [[_ & pred-forms]]
+  (fn [x]
+    (reduce (fn [m pred-form]
+              ;; for every pred-form coerce to new value;
+              ;; we need to compare key by key what changed so that
+              ;; defaults do not overwrite coerced values
+              (into m
+                    (keep (fn [[k v]]
+                            (let [new-val (coerce k v)]
+                              ;; new-val doesn't match default, keep it
+                              (when-not (= (get x k) new-val)
+                                [k new-val]))))
+                    (coerce pred-form x)))
+            x
+            pred-forms)))
+
+(defmethod sym->coercer `s/merge [form] (parse-merge form))
+
 (defn nilable-spec? [spec]
   (and (seq? spec)
        (= `s/nilable (first spec))))

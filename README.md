@@ -131,6 +131,9 @@ Examples from predicate to coerced value:
 ; returns original value when no options can handle
 (sc/coerce `(s/or :int int? :bool boolean?) "nil")          ; "nil"
 
+; Tuple
+(sc/coerce `(s/tuple int? string?) ["0" 1])                 ; => [0 "1"]
+
 ; Others
 (sc/coerce `uuid? "d6e73cc5-95bc-496a-951c-87f11af0d839")   ; => #uuid "d6e73cc5-95bc-496a-951c-87f11af0d839"
 (sc/coerce `inst? "2017-07-21")                             ; => #inst "2017-07-21T00:00:00.000000000-00:00"

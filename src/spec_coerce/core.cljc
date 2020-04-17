@@ -168,6 +168,10 @@
             x)
       x)))
 
+(defn parse-tuple [[_ & preds]]
+  (fn [x]
+    (mapv coerce preds x)))
+
 #?(:clj
    (defn parse-decimal [x]
      (try
@@ -240,6 +244,7 @@
 (defmethod sym->coercer `s/or [form] (parse-or form))
 (defmethod sym->coercer `s/coll-of [form] (parse-coll-of form))
 (defmethod sym->coercer `s/map-of [form] (parse-map-of form))
+(defmethod sym->coercer `s/tuple [form] (parse-tuple form))
 
 #?(:clj (defmethod sym->coercer `uri? [_] parse-uri))
 #?(:clj (defmethod sym->coercer `decimal? [_] parse-decimal))

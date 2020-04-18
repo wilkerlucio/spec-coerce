@@ -168,6 +168,12 @@
             x)
       x)))
 
+(defn parse-tuple [[_ & preds]]
+  (fn [x]
+    (cond->> x
+      (sequential? x)
+      (mapv coerce preds))))
+
 (defn parse-multi-spec
   [[_ f retag & _]]
   (let [f (resolve f)]
@@ -248,6 +254,7 @@
 (defmethod sym->coercer `s/or [form] (parse-or form))
 (defmethod sym->coercer `s/coll-of [form] (parse-coll-of form))
 (defmethod sym->coercer `s/map-of [form] (parse-map-of form))
+(defmethod sym->coercer `s/tuple [form] (parse-tuple form))
 (defmethod sym->coercer `s/multi-spec [form] (parse-multi-spec form))
 
 #?(:clj (defmethod sym->coercer `uri? [_] parse-uri))

@@ -304,6 +304,12 @@
   (is (= (sc/coerce ::unqualified {:foo "1" :bar "hi"})
          {:foo 1 :bar "hi"})))
 
+(s/def ::tuple (s/tuple ::foo ::bar int?))
+
+(deftest test-tuple
+  (is (= [0 "" 1] (sc/coerce ::tuple ["0" nil "1"])))
+  (is (= "garbage" (sc/coerce ::tuple "garbage"))))
+
 (deftest test-merge
   (s/def ::merge (s/merge (s/keys :req-un [::foo])
                           ::unqualified

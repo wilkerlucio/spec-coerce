@@ -314,4 +314,5 @@
   (is (= {:not "foo"} (sc/coerce ::multi {:not "foo"})))
   (is (= {:foo 1} (sc/coerce ::multi {:foo 1})))
   (is (= {:foo 1} (sc/coerce ::multi {:foo "1"})))
-  (is (= {:foo 1 :d :kw} (sc/coerce ::multi {:d :kw :foo "1"}))))
+  (is (= {:foo 1 :d :kw} (sc/coerce ::multi {:d :kw :foo "1"})))
+  (is (= "garbage" (sc/coerce ::multi "garbage"))))

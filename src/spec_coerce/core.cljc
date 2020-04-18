@@ -172,8 +172,9 @@
   [[_ f retag & _]]
   (let [f (resolve f)]
     (fn [x]
-      (coerce (s/form (f (retag x)))
-              x))))
+      (cond->> x
+        (associative? x)
+        (coerce (s/form (f (retag x))))))))
 
 #?(:clj
    (defn parse-decimal [x]

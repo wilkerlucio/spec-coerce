@@ -318,3 +318,16 @@
 
   (is (= "garbage" (sc/coerce ::merge "garbage"))
       "garbage is passthrough"))
+
+(def d :kw)
+(defmulti multi #'d)
+(defmethod multi :default [_] (s/keys :req-un [::foo]))
+(defmethod multi :kw [_] ::unqualified)
+(s/def ::multi (s/multi-spec multi :hit))
+
+(deftest test-multi-spec
+  (is (= {:not "foo"} (sc/coerce ::multi {:not "foo"})))
+  (is (= {:foo 1} (sc/coerce ::multi {:foo 1})))
+  (is (= {:foo 1} (sc/coerce ::multi {:foo "1"})))
+  (is (= {:foo 1 :d :kw} (sc/coerce ::multi {:d :kw :foo "1"})))
+  (is (= "garbage" (sc/coerce ::multi "garbage"))))

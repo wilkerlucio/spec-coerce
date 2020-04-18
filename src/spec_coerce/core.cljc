@@ -168,6 +168,14 @@
             x)
       x)))
 
+(defn parse-multi-spec
+  [[_ f retag & _]]
+  (let [f (resolve f)]
+    (fn [x]
+      (cond->> x
+        (associative? x)
+        (coerce (s/form (f (retag x))))))))
+
 #?(:clj
    (defn parse-decimal [x]
      (try
@@ -240,6 +248,7 @@
 (defmethod sym->coercer `s/or [form] (parse-or form))
 (defmethod sym->coercer `s/coll-of [form] (parse-coll-of form))
 (defmethod sym->coercer `s/map-of [form] (parse-map-of form))
+(defmethod sym->coercer `s/multi-spec [form] (parse-multi-spec form))
 
 #?(:clj (defmethod sym->coercer `uri? [_] parse-uri))
 #?(:clj (defmethod sym->coercer `decimal? [_] parse-decimal))

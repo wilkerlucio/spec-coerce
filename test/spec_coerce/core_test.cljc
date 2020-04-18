@@ -314,4 +314,7 @@
       "Coerce new vals appropriately")
   (is (= {:foo 1 :bar "1" :c {:a 2}}
          (sc/coerce ::merge {:foo 1 :bar "1" :c {:a 2}}))
-      "Leave out ok vals"))
+      "Leave out ok vals")
+
+  (is (= "garbage" (sc/coerce ::merge "garbage"))
+      "garbage is passthrough"))

@@ -304,6 +304,21 @@
   (is (= (sc/coerce ::unqualified {:foo "1" :bar "hi"})
          {:foo 1 :bar "hi"})))
 
+(deftest test-merge
+  (s/def ::merge (s/merge (s/keys :req-un [::foo])
+                          ::unqualified
+                          ;; TODO: add s/multi-spec test
+                          ))
+  (is (= {:foo 1 :bar "1" :c {:a 2}}
+         (sc/coerce ::merge {:foo "1" :bar 1 :c {:a 2}}))
+      "Coerce new vals appropriately")
+  (is (= {:foo 1 :bar "1" :c {:a 2}}
+         (sc/coerce ::merge {:foo 1 :bar "1" :c {:a 2}}))
+      "Leave out ok vals")
+
+  (is (= "garbage" (sc/coerce ::merge "garbage"))
+      "garbage is passthrough"))
+
 (def d :kw)
 (defmulti multi #'d)
 (defmethod multi :default [_] (s/keys :req-un [::foo]))

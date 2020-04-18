@@ -174,6 +174,14 @@
       (sequential? x)
       (mapv coerce preds))))
 
+(defn parse-multi-spec
+  [[_ f retag & _]]
+  (let [f (resolve f)]
+    (fn [x]
+      (cond->> x
+        (associative? x)
+        (coerce (s/form (f (retag x))))))))
+
 #?(:clj
    (defn parse-decimal [x]
      (try
@@ -247,6 +255,7 @@
 (defmethod sym->coercer `s/coll-of [form] (parse-coll-of form))
 (defmethod sym->coercer `s/map-of [form] (parse-map-of form))
 (defmethod sym->coercer `s/tuple [form] (parse-tuple form))
+(defmethod sym->coercer `s/multi-spec [form] (parse-multi-spec form))
 
 #?(:clj (defmethod sym->coercer `uri? [_] parse-uri))
 #?(:clj (defmethod sym->coercer `decimal? [_] parse-decimal))
@@ -269,6 +278,27 @@
 (defmethod sym->coercer `s/keys
   [form]
   (keys-parser form))
+
+(defn parse-merge
+  [[_ & pred-forms]]
+  (fn [x]
+    (if (associative? x)
+      (reduce (fn [m pred-form]
+                ;; for every pred-form coerce to new value;
+                ;; we need to compare key by key what changed so that
+                ;; defaults do not overwrite coerced values
+                (into m
+                      (keep (fn [[k v]]
+                              (let [new-val (coerce k v)]
+                                ;; new-val doesn't match default, keep it
+                                (when-not (= (get x k) new-val)
+                                  [k new-val]))))
+                      (coerce pred-form x)))
+              x
+              pred-forms)
+      x)))
+
+(defmethod sym->coercer `s/merge [form] (parse-merge form))
 
 (defn nilable-spec? [spec]
   (and (seq? spec)

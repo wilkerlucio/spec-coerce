@@ -307,4 +307,5 @@
 (s/def ::tuple (s/tuple ::foo ::bar int?))
 
 (deftest test-tuple
-  (is (= [0 "" 1] (sc/coerce ::tuple ["0" nil "1"]))))
+  (is (= [0 "" 1] (sc/coerce ::tuple ["0" nil "1"])))
+  (is (= "garbage" (sc/coerce ::tuple "garbage"))))

@@ -170,7 +170,9 @@
 
 (defn parse-tuple [[_ & preds]]
   (fn [x]
-    (mapv coerce preds x)))
+    (cond->> x
+      (sequential? x)
+      (mapv coerce preds))))
 
 #?(:clj
    (defn parse-decimal [x]

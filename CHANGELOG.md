@@ -1,5 +1,10 @@
 # Change Log
 
+## [1.0.0-alpha15]
+- Add support for `s/merge`
+- Add support for `s/tuple`
+- Add support for `s/multi-spec`
+
 ## [1.0.0-alpha14]
 - Handle number->number, any->string, and symbol->keyword
 - Infer coercion from specs given as sets

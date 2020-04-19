@@ -16,4 +16,20 @@
    :extra-deps  {org.clojure/test.check    {:mvn/version "0.9.0"}
                  com.cognitect/test-runner {:git/url "https://github.com/cognitect-labs/test-runner.git"
                                             :sha     "5fb4fc46ad0bf2e0ce45eba5b9117a2e89166479"}}
-   :main-opts   ["-m" "cognitect.test-runner"]}}}
+   :main-opts   ["-m" "cognitect.test-runner"]}
+
+  :pack
+  {:extra-deps {pack/pack.alpha {:git/url "https://github.com/juxt/pack.alpha.git"
+                                 :sha     "c70740ffc10805f34836da2160fa1899601fac02"}}
+   :main-opts  ["-m" "mach.pack.alpha.skinny" "--project-path" "target/spec-coerce.jar"]}
+
+  :deploy
+  {:extra-deps {deps-deploy {:mvn/version "0.0.9"}}
+   :main-opts  ["-m" "deps-deploy.deps-deploy" "deploy" "target/spec-coerce.jar"]}
+
+  :install
+  {:extra-deps {deps-deploy {:mvn/version "0.0.9"}}
+   :main-opts  ["-m" "deps-deploy.deps-deploy" "install" "target/spec-coerce.jar"]}
+
+  :tubular
+  {:extra-deps {tubular {:mvn/version "1.3.0"}}}}}

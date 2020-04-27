@@ -1,4 +1,4 @@
-# spec-coerce [![Clojars Project](https://img.shields.io/clojars/v/spec-coerce.svg)](https://clojars.org/spec-coerce) [![cljdoc badge](https://cljdoc.xyz/badge/spec-coerce/spec-coerce)](https://cljdoc.xyz/d/spec-coerce/spec-coerce/CURRENT) [![CircleCI](https://circleci.com/gh/wilkerlucio/spec-coerce.svg?style=svg)](https://circleci.com/gh/wilkerlucio/spec-coerce) 
+# spec-coerce [![Clojars Project](https://img.shields.io/clojars/v/spec-coerce.svg)](https://clojars.org/spec-coerce) [![cljdoc badge](https://cljdoc.xyz/badge/spec-coerce/spec-coerce)](https://cljdoc.xyz/d/spec-coerce/spec-coerce/CURRENT) [![Actions Status](https://github.com/wilkerlucio/spec-coerce/workflows/test/badge.svg)](https://github.com/wilkerlucio/spec-coerce/actions) 
 
 A Clojure(script) library designed to leverage your specs to coerce your information into correct types.
 

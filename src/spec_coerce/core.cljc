@@ -16,7 +16,8 @@
 
 (defonce ^:private registry-ref (atom {}))
 
-(def ^:dynamic *overrides*
+(def ^:dynamic ^:deprecated
+  *overrides*
   "Allows overriding of specs in the registry within a local binding
   context.
 
@@ -24,10 +25,16 @@
     (sc/coerce ::my/spec data))"
   {})
 
-(defn parse-long [x]
-  (cond  (string? x)
+(defn parse-string
+  ([x] (parse-string x nil))
+  ([x _] (str x)))
+
+(defn parse-long
+  ([x] (parse-long x nil))
+  ([x _]
+   (cond (string? x)
          (try
-           #?(:clj  (Long/parseLong x)
+           #?(:clj (Long/parseLong x)
               :cljs (if (= "NaN" x)
                       js/NaN
                       (let [v (js/parseInt x)]
@@ -35,36 +42,40 @@
            (catch #?(:clj Exception :cljs :default) _
              x))
          (number? x) (long x)
-         :else       x))
+         :else       x)))
 
-(defn parse-double [x]
-  (cond (string? x)
-        (try
-          #?(:clj  (case x
-                     "##-Inf"    ##-Inf
-                     "##Inf"     ##Inf
-                     "##NaN"     ##NaN
-                     "NaN"       ##NaN
-                     "Infinity"  ##Inf
-                     "-Infinity" ##-Inf
-                     (Double/parseDouble x))
-             :cljs (if (= "NaN" x)
-                     js/NaN
-                     (let [v (js/parseFloat x)]
-                       (if (js/isNaN v) x v))))
-          (catch #?(:clj Exception :cljs :default) _
-            x))
-        (number? x) (double x)
-        :else       x))
+(defn parse-double
+  ([x] (parse-double x nil))
+  ([x _]
+   (cond (string? x)
+         (try
+           #?(:clj  (case x
+                      "##-Inf"    ##-Inf
+                      "##Inf"     ##Inf
+                      "##NaN"     ##NaN
+                      "NaN"       ##NaN
+                      "Infinity"  ##Inf
+                      "-Infinity" ##-Inf
+                      (Double/parseDouble x))
+              :cljs (if (= "NaN" x)
+                      js/NaN
+                      (let [v (js/parseFloat x)]
+                        (if (js/isNaN v) x v))))
+           (catch #?(:clj Exception :cljs :default) _
+             x))
+         (number? x) (double x)
+         :else       x)))
 
-(defn parse-uuid [x]
-  (if (string? x)
-    (try
-      #?(:clj  (UUID/fromString x)
-         :cljs (uuid x))
-      (catch #?(:clj Exception :cljs :default) _
-        x))
-    x))
+(defn parse-uuid
+  ([x] (parse-uuid x nil))
+  ([x _]
+   (if (string? x)
+     (try
+       #?(:clj  (UUID/fromString x)
+          :cljs (uuid x))
+       (catch #?(:clj Exception :cljs :default) _
+         x))
+     x)))
 
 #?(:clj (def ^:dynamic *inst-formats*
           ["yyyy/M/d H:m:s" "yyyy/M/d H:m" "yyyy/M/d"
@@ -81,71 +92,82 @@
          (let [zone (ZoneId/of (.getID (TimeZone/getDefault)))]
            (or (some #(try
                         (Date/from
-                          (.toInstant
-                            (.atZone
-                              (LocalDateTime/parse x (DateTimeFormatter/ofPattern %))
-                              zone)))
+                         (.toInstant
+                          (.atZone
+                           (LocalDateTime/parse x (DateTimeFormatter/ofPattern %))
+                           zone)))
                         (catch Exception _)) *inst-formats*)
-             (some #(try
-                      (Date/from
-                        (.toInstant
+               (some #(try
+                        (Date/from
+                         (.toInstant
                           (.atStartOfDay
-                            (LocalDate/parse x (DateTimeFormatter/ofPattern %))
-                            zone)))
-                      (catch Exception _)) *inst-formats*)
-             x))))))
+                           (LocalDate/parse x (DateTimeFormatter/ofPattern %))
+                           zone)))
+                        (catch Exception _)) *inst-formats*)
+               x))))))
 
-(defn parse-inst [x]
-  (if (string? x)
-    (try
-      #?(:clj  (flexible-parse-inst x)
-         :cljs (js/Date. x))
-      (catch #?(:clj Exception :cljs :default) _
-        x))
-    x))
+(defn parse-inst
+  ([x] (parse-inst x nil))
+  ([x _]
+   (if (string? x)
+     (try
+       #?(:clj  (flexible-parse-inst x)
+          :cljs (js/Date. x))
+       (catch #?(:clj Exception :cljs :default) _
+         x))
+     x)))
 
-(defn parse-boolean [x]
-  (case x
-    "true" true
-    "false" false
-    x))
+(defn parse-boolean
+  ([x] (parse-boolean x nil))
+  ([x _]
+   (case x
+     "true" true
+     "false" false
+     x)))
 
-(defn parse-keyword [x]
-  (cond (string? x)
-        (if (str/starts-with? x ":")
-          (keyword (subs x 1))
-          (keyword x))
-        (symbol? x) (keyword x)
-        :else       x))
+(defn parse-keyword
+  ([x] (parse-keyword x nil))
+  ([x _]
+   (cond (string? x)
+         (if (str/starts-with? x ":")
+           (keyword (subs x 1))
+           (keyword x))
+         (symbol? x) (keyword x)
+         :else       x)))
 
-(defn parse-symbol [x]
-  (if (string? x)
-    (symbol x)
-    x))
+(defn parse-symbol
+  ([x] (parse-symbol x nil))
+  ([x _]
+   (cond-> x
+     (string? x)
+     symbol)))
 
-(defn parse-ident [x]
-  (if (string? x)
-    (if (str/starts-with? x ":")
-      (parse-keyword x)
-      (symbol x))
-    x))
+(defn parse-ident
+  ([x] (parse-ident x nil))
+  ([x opts]
+   (if (string? x)
+     (if (str/starts-with? x ":")
+       (parse-keyword x opts)
+       (symbol x))
+     x)))
 
-(defn parse-nil [x]
-  (if (and (string? x)
-           (#{"nil" "null"} (str/trim x)))
-    nil
-    x))
+(defn parse-nil
+  ([x] (parse-nil x nil))
+  ([x _]
+   (if (and (string? x)
+            (#{"nil" "null"} (str/trim x)))
+     nil
+     x)))
 
 (defn parse-or [[_ & pairs]]
-  (fn [x]
-    (reduce
-      (fn [x [_ pred]]
-        (let [coerced (coerce pred x)]
-          (if (= x coerced)
+  (fn [x opts]
+    (reduce (fn [x [_ pred]]
+              (let [coerced (coerce pred x opts)]
+                (if (= x coerced)
+                  x
+                  (reduced coerced))))
             x
-            (reduced coerced))))
-      x
-      (partition 2 pairs))))
+            (partition 2 pairs))))
 
 (defn- map-seq
   [fun x]
@@ -154,47 +176,54 @@
     (map fun x)))
 
 (defn parse-coll-of [[_ pred & _]]
-  (fn [x]
-    (if (sequential? x)
-      (map-seq (partial coerce pred) x)
-      x)))
-
-(defn parse-map-of [[_ kpred vpred & _]]
-  (fn [x]
-    (if (associative? x)
-      (into {} (map (fn [[k v]]
-                      [(coerce kpred k)
-                       (coerce vpred v)]))
-            x)
-      x)))
-
-(defn parse-tuple [[_ & preds]]
-  (fn [x]
+  (fn [x opts]
     (cond->> x
       (sequential? x)
-      (mapv coerce preds))))
+      (map-seq #(coerce pred % opts)))))
+
+(defn parse-map-of [[_ kpred vpred & _]]
+  (fn [x opts]
+    (cond->> x
+      (associative? x)
+      (into (empty x) ;; ensure we copy meta
+            (map (fn [[k v]]
+                   [(coerce kpred k opts)
+                    (coerce vpred v opts)]))))))
+
+(defn parse-tuple [[_ & preds]]
+  (fn [x opts]
+    (cond->> x
+      (sequential? x)
+      (mapv #(coerce %1 %2 opts)
+            preds))))
 
 (defn parse-multi-spec
   [[_ f retag & _]]
   (let [f (resolve f)]
-    (fn [x]
-      (cond->> x
-        (associative? x)
-        (coerce (s/form (f (retag x))))))))
+    (fn [x opts]
+      (if (associative? x)
+        (coerce (s/form (f (retag x)))
+                x
+                opts)
+        x))))
 
 #?(:clj
-   (defn parse-decimal [x]
-     (try
-       (if (and (string? x) (str/ends-with? x "M"))
-         (bigdec (subs x 0 (dec (count x))))
-         (bigdec x))
-       (catch Exception _ x))))
+   (defn parse-decimal
+     ([x] (parse-decimal x nil))
+     ([x _]
+      (try
+        (if (and (string? x) (str/ends-with? x "M"))
+          (bigdec (subs x 0 (dec (count x))))
+          (bigdec x))
+        (catch Exception _ x)))))
 
 #?(:clj
-   (defn parse-uri [x]
-     (if (string? x)
-       (URI. x)
-       x)))
+   (defn parse-uri
+     ([x] (parse-uri x nil))
+     ([x _]
+      (if (string? x)
+        (URI. x)
+        x))))
 
 (defn type->sym [x]
   (cond (int? x)     `integer?
@@ -213,18 +242,27 @@
 (defn spec-is-homogeneous-set? [x]
   "If the spec is given as a set, and every member of the set is the same type,
   then we can infer a coercion from that shared type."
-  (and (set? x)
-       (->> x
-            (map type)
-            (apply =))))
+  (when (set? x)
+    (let [x0 (first x)
+          t (type x0)]
+      (reduce (fn [_ y]
+                (or (= t (type y))
+                    (reduced false)))
+              true
+              x))))
 
 (defmulti sym->coercer
   (fn [x]
-    (cond (spec-is-homogeneous-set? x) (-> x first type->sym)
+    (cond (spec-is-homogeneous-set? x)
+          (-> x first type->sym)
           (sequential? x)  (first x)
           :else            x)))
 
-(defmethod sym->coercer `string? [_] str)
+(defn passthrough-parser
+  [x _]
+  x)
+
+(defmethod sym->coercer `string? [_] parse-string)
 (defmethod sym->coercer `number? [_] parse-double)
 (defmethod sym->coercer `integer? [_] parse-long)
 (defmethod sym->coercer `int? [_] parse-long)
@@ -260,20 +298,23 @@
 #?(:clj (defmethod sym->coercer `uri? [_] parse-uri))
 #?(:clj (defmethod sym->coercer `decimal? [_] parse-decimal))
 
-(defmethod sym->coercer :default [_] identity)
+(defmethod sym->coercer :default [_] passthrough-parser)
 
 (defn- keys-parser
   [[_ & {:keys [req-un opt-un]}]]
   (let [unnest (comp (filter keyword?)
                      (map #(vector (keyword (name %)) %)))
         keys-mapping (into {} unnest (flatten (concat req-un opt-un)))]
-    (fn [x]
-      (with-meta
+    (fn [x opts]
+      (cond->> x
+        (associative? x)
         (reduce-kv (fn [m k v]
-                     (assoc m k (coerce (or (keys-mapping k) k) v)))
-          {}
-          x)
-        (meta x)))))
+                     (assoc m
+                            k
+                            (coerce (or (keys-mapping k) k)
+                                    v
+                                    opts)))
+                   (empty x))))))
 
 (defmethod sym->coercer `s/keys
   [form]
@@ -281,7 +322,7 @@
 
 (defn parse-merge
   [[_ & pred-forms]]
-  (fn [x]
+  (fn [x opts]
     (if (associative? x)
       (reduce (fn [m pred-form]
                 ;; for every pred-form coerce to new value;
@@ -289,16 +330,17 @@
                 ;; defaults do not overwrite coerced values
                 (into m
                       (keep (fn [[k v]]
-                              (let [new-val (coerce k v)]
+                              (let [new-val (coerce k v opts)]
                                 ;; new-val doesn't match default, keep it
                                 (when-not (= (get x k) new-val)
                                   [k new-val]))))
-                      (coerce pred-form x)))
+                      (coerce pred-form x opts)))
               x
               pred-forms)
       x)))
 
-(defmethod sym->coercer `s/merge [form] (parse-merge form))
+(defmethod sym->coercer `s/merge [form]
+  (parse-merge form))
 
 (defn nilable-spec? [spec]
   (and (seq? spec)
@@ -309,60 +351,78 @@
     (second spec)
     spec))
 
+(defn gen-nilable-coercer
+  [coercer]
+  (fn [x opts]
+    (some-> x
+            (parse-nil opts)
+            (coercer opts))))
+
 (defn spec->coercion [root-spec]
   (-> root-spec
       pull-nilable
       sym->coercer
       (cond-> (nilable-spec? root-spec)
-        (comp parse-nil))))
+        gen-nilable-coercer)))
 
-(defn nilable-spec->coercion [root-spec]
+(defn nilable-spec->coercion
   "Pulling out nilable so we can get a real function to get a coercer "
+  [root-spec]
   (-> root-spec
       pull-nilable
       si/spec->root-sym
       sym->coercer
       (cond-> (nilable-spec? root-spec)
-        (comp parse-nil))))
+        gen-nilable-coercer)))
 
-(defn infer-coercion [k]
+(defn infer-coercion
   "Infer a coercer function from a given spec."
+  [k]
   (let [root-spec (si/spec->root-sym k)]
-    (cond (nilable-spec? root-spec) (nilable-spec->coercion root-spec)
-          :else                     (spec->coercion root-spec))))
+    (if (nilable-spec? root-spec)
+      (nilable-spec->coercion root-spec)
+      (spec->coercion root-spec))))
 
-(defn coerce-fn [k]
-  "Get the coercing function from a given key. First it tries to lookup the coercion
-  on the registry, otherwise try to infer from the specs. In case nothing is found, identity function is returned."
-  (or (when (qualified-keyword? k)
-        (si/registry-lookup (merge @registry-ref *overrides*) k))
-      (infer-coercion k)))
+(defn coerce-fn
+  "Get the coercing function from a given key. First it tries to lookup
+  the coercion on the registry, otherwise try to infer from the
+  specs. In case nothing is found, identity function is returned."
+  ([k] (coerce-fn k {::overrides *overrides*}))
+  ([k {::keys [overrides] :as opts}]
+   (or (when (qualified-keyword? k)
+         (si/registry-lookup (merge @registry-ref overrides) k))
+       (infer-coercion k))))
 
-(defn coerce [k x]
-  "Coerce a value x using coercer k. This function will first try to use
-  a coercer from the registry, otherwise it will try to infer a coercer from
-  the spec with the same name. Coercion will only be tried if x is a string.
-  Returns original value in case a coercer can't be found."
-  (if-let [coerce-fn (coerce-fn k)]
-    (coerce-fn x)
-    x))
+(defn coerce
+  "Coerce a value x using coercer k. This function will first try to
+  use a coercer from the registry, otherwise it will try to infer a
+  coercer from the spec with the same name. Coercion will only be
+  tried if x is a string.  Returns original value in case a coercer
+  can't be found."
+  ([k x] (coerce k x {::overrides *overrides*}))
+  ([k x opts]
+   (if-let [coerce-fn (coerce-fn k opts)]
+     (coerce-fn x opts)
+     x)))
 
 (defn coerce!
   "Like coerce, but will call s/assert on the result, making it throw an error if value
   doesn't comply after coercion."
-  [k x]
-  (if (simple-keyword? k)
-    x
-    (let [coerced (coerce k x)]
-      (if (s/valid? k coerced)
-        coerced
-        (throw (ex-info "Failed to coerce value" {:spec  k
-                                                  :value x}))))))
+  ([k x] (coerce! k x {::overrides *overrides*}))
+  ([k x opts]
+   (if (simple-keyword? k)
+     x
+     (let [coerced (coerce k x opts)]
+       (if (s/valid? k coerced)
+         coerced
+         (throw (ex-info "Failed to coerce value" {:spec  k
+                                                   :value x})))))))
 
 (defn conform
   "Like coerce, and will call s/conform on the result."
-  [k x]
-  (s/conform k (coerce k x)))
+  ([k x] (conform k x {::overrides *overrides*}))
+  ([k x opts]
+   (s/conform k (coerce k x opts))))
 
 (defn ^:skip-wiki def-impl [k coerce-fn]
   (assert (and (ident? k) (namespace k)) "k must be namespaced keyword")
@@ -389,12 +449,13 @@
   "Recursively coerce map values on a structure."
   ([x] (coerce-structure x {}))
   ([x {::keys [overrides op]
-       :or    {op coerce}}]
+       :or    {op coerce}
+       :as    opts}]
    (walk/prewalk (fn [x]
-                   (if (map? x)
-                     (with-meta (into {} (map (fn [[k v]]
-                                                (let [coercion (get overrides k k)]
-                                                  [k (op coercion v)]))) x)
-                       (meta x))
-                     x))
-     x)))
+                   (cond->> x
+                     (map? x)
+                     (into (empty x)
+                           (map (fn [[k v]]
+                                  (let [coercion (get overrides k k)]
+                                    [k (op coercion v opts)]))))))
+                 x)))

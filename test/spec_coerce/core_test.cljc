@@ -28,7 +28,7 @@
 (sc/def ::some-coercion sc/parse-long)
 
 (s/def ::first-layer int?)
-(sc/def ::first-layer #(-> (sc/parse-long %) inc))
+(sc/def ::first-layer (fn [x _] (inc (sc/parse-long x))))
 
 (s/def ::second-layer ::first-layer)
 (s/def ::second-layer-and (s/and ::first-layer #(> % 10)))
@@ -37,6 +37,7 @@
 
 (s/def ::nilable-int (s/nilable ::infer-int))
 (s/def ::nilable-pos-int (s/nilable (s/and ::infer-int pos?)))
+(s/def ::nilable-string (s/nilable string?))
 
 (s/def ::int-set #{1 2})
 (s/def ::float-set #{1.2 2.1})
@@ -79,7 +80,12 @@
     (is (= (sc/coerce ::infer-nilable "123") 123))
     (is (= (sc/coerce ::infer-nilable "nil") nil))
     (is (= (sc/coerce ::nilable-int "10") 10))
-    (is (= (sc/coerce ::nilable-pos-int "10") 10)))
+    (is (= (sc/coerce ::nilable-pos-int "10") 10))
+
+    (is (= (sc/coerce ::nilable-string nil) nil))
+    (is (= (sc/coerce ::nilable-string 1) "1"))
+    (is (= (sc/coerce ::nilable-string "") ""))
+    (is (= (sc/coerce ::nilable-string "asdf") "asdf")))
 
   (testing "specs given as sets"
     (is (= (sc/coerce ::int-set "1") 1))
@@ -267,7 +273,8 @@
          (sc/coerce ::nested-keys {::infer-form  ["1" "2" "3"]
                                    ::simple-keys {::infer-int "456"
                                                   ::bool      "true"}
-                                   :bool         "true"}))))
+                                   :bool         "true"})))
+  (is (= "garbage" (sc/coerce ::simple-keys "garbage"))))
 
 (s/def ::head double?)
 (s/def ::body int?)
@@ -289,7 +296,23 @@
                                   ::body "16"
                                   ::arms ["4" "4"]
                                   ::legs ["7" "7"]
-                                  :name "john"}))))))
+                                  :name "john"}))))
+    (is (= {::head 1
+            ::body 16
+            ::arms [4 4]
+            ::legs [7 7]
+            :name :john}
+           (sc/coerce ::animal
+                      {::head "1"
+                       ::body "16"
+                       ::arms ["4" "4"]
+                       ::legs ["7" "7"]
+                       :name "john"}
+                      {::sc/overrides
+                       {::head (sc/sym->coercer `int?)
+                        ::leg  (sc/sym->coercer `int?)
+                        ::name (sc/sym->coercer `keyword?)}})))
+    "Coerce with option form"))
 
 (s/def ::foo int?)
 (s/def ::bar string?)

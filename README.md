@@ -1,4 +1,4 @@
-# spec-coerce [![Clojars Project](https://img.shields.io/clojars/v/spec-coerce.svg)](https://clojars.org/spec-coerce) ![Test](https://github.com/wilkerlucio/spec-coerce/workflows/Test/badge.svg?branch=master) [![cljdoc badge](https://cljdoc.xyz/badge/spec-coerce/spec-coerce)](https://cljdoc.xyz/d/spec-coerce/spec-coerce/CURRENT) 
+# spec-coerce [![Clojars Project](https://img.shields.io/clojars/v/spec-coerce.svg)](https://clojars.org/spec-coerce) ![Test](https://github.com/wilkerlucio/spec-coerce/workflows/Test/badge.svg?branch=master) [![cljdoc badge](https://cljdoc.xyz/badge/spec-coerce/spec-coerce)](https://cljdoc.xyz/d/spec-coerce/spec-coerce/CURRENT)
 
 A Clojure(script) library designed to leverage your specs to coerce your information into correct types.
 
@@ -13,7 +13,7 @@ Learn by example:
   (:require
     [clojure.spec.alpha :as s]
     [spec-coerce.core :as sc]))
-    
+
 ; Define a spec as usual
 (s/def ::number int?)
 
@@ -42,8 +42,8 @@ Learn by example:
 (sc/coerce `int? "40") ; => 40
 
 ; Parsers are written to be safe to call, when unable to coerce they will return the original value
-(sc/coerce `int? "40.2") ; => "40.2" 
-(sc/coerce `inst? "date") ; => "date" 
+(sc/coerce `int? "40.2") ; => "40.2"
+(sc/coerce `inst? "date") ; => "date"
 
 ; To leverage map keys and coerce a composed structure, use coerce-structure
 (sc/coerce-structure {::number      "42"
@@ -137,8 +137,7 @@ Examples from predicate to coerced value:
 ; Others
 (sc/coerce `uuid? "d6e73cc5-95bc-496a-951c-87f11af0d839")   ; => #uuid "d6e73cc5-95bc-496a-951c-87f11af0d839"
 (sc/coerce `inst? "2017-07-21")                             ; => #inst "2017-07-21T00:00:00.000000000-00:00"
-(sc/coerce `nil? "nil")                                     ; => nil
-(sc/coerce `nil? "null")                                    ; => nil
+(sc/coerce `nil? nil)                                       ; => nil
 
 ;; Clojure only:
 (sc/coerce `uri? "http://site.com") ; => (URI. "http://site.com")

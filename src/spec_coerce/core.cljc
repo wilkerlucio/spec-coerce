@@ -151,14 +151,6 @@
        (symbol x))
      x)))
 
-(defn parse-nil
-  ([x] (parse-nil x nil))
-  ([x _]
-   (if (and (string? x)
-            (#{"nil" "null"} (str/trim x)))
-     nil
-     x)))
-
 (defn parse-or [[_ & pairs]]
   (fn [x opts]
     (reduce (fn [x [_ pred]]
@@ -285,7 +277,6 @@
 (defmethod sym->coercer `qualified-symbol? [_] parse-symbol)
 (defmethod sym->coercer `uuid? [_] parse-uuid)
 (defmethod sym->coercer `inst? [_] parse-inst)
-(defmethod sym->coercer `nil? [_] parse-nil)
 (defmethod sym->coercer `false? [_] parse-boolean)
 (defmethod sym->coercer `true? [_] parse-boolean)
 (defmethod sym->coercer `zero? [_] parse-long)
@@ -354,9 +345,7 @@
 (defn gen-nilable-coercer
   [coercer]
   (fn [x opts]
-    (some-> x
-            (parse-nil opts)
-            (coercer opts))))
+    (some-> x (coercer opts))))
 
 (defn spec->coercion [root-spec]
   (-> root-spec

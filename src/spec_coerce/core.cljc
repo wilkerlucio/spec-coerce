@@ -1,5 +1,5 @@
 (ns spec-coerce.core
-  (:refer-clojure :exclude [def])
+  (:refer-clojure :exclude [def parse-boolean parse-double parse-long parse-uuid])
   (:require [com.wsscode.spec-inspec :as si]
             [clojure.spec.alpha :as s]
             [clojure.walk :as walk]

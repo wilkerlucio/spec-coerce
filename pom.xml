@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>spec-coerce</groupId>
   <artifactId>spec-coerce</artifactId>
-  <version>1.0.0-alpha15</version>
+  <version>1.0.0-alpha16</version>
   <name>spec-coerce</name>
   <dependencies>
     <dependency>

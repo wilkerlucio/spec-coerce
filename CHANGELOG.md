@@ -1,5 +1,8 @@
 # Change Log
 
+## [1.0.0-alpha16]
+- Refer exclude new things from Clojure 1.11: `parse-boolean` `parse-double` `parse-long` `parse-uuid`
+
 ## [1.0.0-alpha15]
 - Add support for `s/merge`
 - Add support for `s/tuple`
